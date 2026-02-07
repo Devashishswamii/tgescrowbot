@@ -46,10 +46,10 @@
             <tbody>
                 {% for user in recent_users %}
                 <tr>
-                    <td>{{ user[0] }}</td>
-                    <td>@{{ user[1] or 'N/A' }}</td>
-                    <td>{{ user[2] }}</td>
-                    <td>{{ user[4] }}</td>
+                    <td data-label="User ID">{{ user[0] }}</td>
+                    <td data-label="Username">@{{ user[1] or 'N/A' }}</td>
+                    <td data-label="Name">{{ user[2] }}</td>
+                    <td data-label="Started At">{{ user[4] }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
