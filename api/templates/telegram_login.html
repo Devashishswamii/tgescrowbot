@@ -1,60 +1,123 @@
 {% extends "base.html" %}
 
-{% block title %}Telegram Login{% endblock %}
+{% block title %}Telegram Session{% endblock %}
 
 {% block content %}
-<h1>📱 Telegram Account Login</h1>
+<h1>📱 Telegram Account Session</h1>
 
 {% if session_data %}
-<!-- Already logged in -->
-<div class="card">
-    <h2>✅ Active Session</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Property</th>
-                <th>Value</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td><strong>Phone</strong></td>
-                <td><code>{{ session_data.phone }}</code></td>
-            </tr>
-            <tr>
-                <td><strong>User ID</strong></td>
-                <td><code>{{ session_data.user_id }}</code></td>
-            </tr>
-            <tr>
-                <td><strong>Name</strong></td>
-                <td>{{ session_data.first_name }} {{ session_data.last_name or '' }}</td>
-            </tr>
-            {% if session_data.username %}
-            <tr>
-                <td><strong>Username</strong></td>
-                <td>@{{ session_data.username }}</td>
-            </tr>
-            {% endif %}
-        </tbody>
-    </table>
+<!-- LOGGED IN - PROFESSIONAL SESSION DISPLAY -->
+<div class="card" style="border: 2px solid #10b981; background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);">
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+        <div
+            style="width: 60px; height: 60px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+            ✅
+        </div>
+        <div>
+            <h2 style="margin: 0; color: #065f46;">Active Telegram Session</h2>
+            <p style="margin: 0.25rem 0 0 0; color: #059669; font-weight: 500;">Connected & Ready to Use</p>
+        </div>
+    </div>
 
-    <div style="margin-top: 1.5rem;">
-        <form method="POST" style="display:inline;">
+    <div style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <h3 style="margin-top: 0; color: #1f2937; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">📋 Account
+            Information</h3>
+
+        <div style="display: grid; gap: 1rem;">
+            <!-- User ID -->
+            <div style="background: #f9fafb; padding: 1rem; border-radius: 8px; border-left: 4px solid #667eea;">
+                <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">User ID</div>
+                <div style="font-size: 1.25rem; font-weight: 600; color: #1f2937; font-family: monospace;">
+                    {{ session_data.user_id }}
+                </div>
+                <div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;">Use this ID to create groups</div>
+            </div>
+
+            <!-- Phone Number -->
+            <div style="background: #f9fafb; padding: 1rem; border-radius: 8px; border-left: 4px solid #10b981;">
+                <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">Phone Number</div>
+                <div style="font-size: 1.25rem; font-weight: 600; color: #1f2937; font-family: monospace;">
+                    {{ session_data.phone }}
+                </div>
+            </div>
+
+            <!-- Name -->
+            <div style="background: #f9fafb; padding: 1rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">Account Name</div>
+                <div style="font-size: 1.125rem; font-weight: 600; color: #1f2937;">
+                    {{ session_data.first_name }} {{ session_data.last_name or '' }}
+                    {% if session_data.username %}
+                    <span style="color: #667eea; font-weight: 500;">@{{ session_data.username }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Session String -->
+            <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                <div style="font-size: 0.875rem; color: #92400e; margin-bottom: 0.5rem; font-weight: 600;">
+                    🔐 Session String (Keep Secret!)
+                </div>
+                <div
+                    style="background: #fffbeb; padding: 0.75rem; border-radius: 6px; border: 1px solid #fcd34d; margin-bottom: 0.5rem;">
+                    <code
+                        style="font-size: 0.75rem; color: #78350f; word-break: break-all; display: block; max-height: 100px; overflow-y: auto;">{{ session_data.session_string }}</code>
+                </div>
+                <div style="font-size: 0.75rem; color: #92400e;">
+                    ⚠️ This string allows full access to your Telegram account. Never share it!
+                </div>
+            </div>
+
+            <!-- Last Updated -->
+            <div style="background: #f9fafb; padding: 1rem; border-radius: 8px; border-left: 4px solid #6b7280;">
+                <div style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.25rem;">Last Updated</div>
+                <div style="font-size: 1rem; color: #1f2937;">
+                    {{ session_data.updated_at }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+        <form method="POST" style="flex: 1;">
             <input type="hidden" name="action" value="logout">
-            <button type="submit" class="btn-danger" onclick="return confirm('Logout from Telegram?');">
-                🚪 Logout
+            <button type="submit" class="btn-danger" style="width: 100%; font-size: 1.125rem; padding: 1rem;"
+                onclick="return confirm('Are you sure you want to logout from Telegram?');">
+                🚪 Logout from Telegram
             </button>
         </form>
     </div>
 </div>
 
-<div class="alert alert-success">
-    ✅ <strong>Ready to Create Groups!</strong><br>
-    Your session is saved. You can now create escrow groups with this account!
+<!-- USAGE INFO CARD -->
+<div class="card" style="background: linear-gradient(135deg, #ede9fe 0%, #ffffff 100%); border: 2px solid #a78bfa;">
+    <h3 style="margin-top: 0; color: #5b21b6;">🎯 How to Use This Session</h3>
+    <div style="color: #6b7280; line-height: 1.8;">
+        <p style="margin-top: 0;"><strong style="color: #5b21b6;">Your Telegram session is active!</strong> You can now
+            use this account to:</p>
+        <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+            <li><strong>Create Escrow Groups:</strong> Automatically create groups for each transaction</li>
+            <li><strong>Send Messages:</strong> Send automated messages as this account</li>
+            <li><strong>Manage Channels:</strong> Create and manage Telegram channels</li>
+            <li><strong>Full API Access:</strong> Complete Telegram API functionality</li>
+        </ul>
+        <p style="margin-bottom: 0;">Check <code>TELEGRAM_GROUP_CREATION_GUIDE.md</code> for code examples.</p>
+    </div>
+</div>
+
+<!-- TECHNICAL INFO -->
+<div class="card">
+    <h3 style="margin-top: 0; color: #1f2937;">⚙️ Technical Details</h3>
+    <ul style="color: #6b7280; line-height: 1.8; margin: 0;">
+        <li><strong>Session Type:</strong> StringSession (serverless compatible)</li>
+        <li><strong>Storage:</strong> Supabase database</li>
+        <li><strong>Persistence:</strong> Permanent until logout</li>
+        <li><strong>Platform:</strong> Works on Vercel serverless</li>
+        <li><strong>Security:</strong> Encrypted connection to Telegram</li>
+    </ul>
 </div>
 
 {% else %}
-<!-- Login Form -->
+<!-- NOT LOGGED IN - LOGIN FORM -->
 <div class="card">
     <h2>Login to Telegram</h2>
 
@@ -64,44 +127,58 @@
     <form method="POST">
         <input type="hidden" name="action" value="send_code">
         <div class="form-group">
-            <label for="phone">Phone Number</label>
+            <label for="phone">📱 Phone Number</label>
             <input type="tel" id="phone" name="phone" placeholder="+1234567890" required autofocus>
             <small style="color: #64748b;">Include country code (e.g., +1, +91, +44)</small>
         </div>
-        <button type="submit" class="btn-success">📱 Send Code</button>
+        <button type="submit" class="btn-success" style="width: 100%; font-size: 1.125rem;">📱 Send Verification
+            Code</button>
     </form>
 
     {% elif login_step == 'code' %}
     <!-- Step 2: Verification Code -->
-    <p style="color: #64748b; margin-bottom: 0.5rem;">Code sent to: <strong>{{ phone }}</strong></p>
+    <div
+        style="background: #eff6ff; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #3b82f6;">
+        <p style="margin: 0; color: #1e40af;">
+            📲 Code sent to: <strong style="font-size: 1.125rem;">{{ phone }}</strong>
+        </p>
+    </div>
     <form method="POST">
         <input type="hidden" name="action" value="verify_code">
         <div class="form-group">
-            <label for="code">Verification Code</label>
-            <input type="text" id="code" name="code" placeholder="12345" required autofocus>
-            <small style="color: #64748b;">Check Telegram app or SMS</small>
+            <label for="code">🔐 Verification Code</label>
+            <input type="text" id="code" name="code" placeholder="Enter 5-digit code" maxlength="10" required autofocus
+                style="font-size: 1.25rem; text-align: center; letter-spacing: 0.5rem;">
+            <small style="color: #64748b;">Check your Telegram app or SMS</small>
         </div>
-        <button type="submit" class="btn-success">✅ Verify</button>
+        <button type="submit" class="btn-success" style="width: 100%; font-size: 1.125rem;">✅ Verify Code</button>
     </form>
     <form method="POST" style="margin-top: 1rem;">
         <input type="hidden" name="action" value="start_over">
-        <button type="submit" class="btn-secondary">🔙 Start Over</button>
+        <button type="submit" class="btn-secondary" style="width: 100%;">🔙 Start Over (Change Number)</button>
     </form>
 
     {% elif login_step == 'password' %}
     <!-- Step 3: 2FA Password -->
-    <p style="color: #64748b; margin-bottom: 1.5rem;">2FA enabled. Enter your password.</p>
+    <div
+        style="background: #fef3c7; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid #f59e0b;">
+        <p style="margin: 0; color: #78350f;">
+            🔐 <strong>Two-Factor Authentication Enabled</strong><br>
+            Enter your cloud password to continue
+        </p>
+    </div>
     <form method="POST">
         <input type="hidden" name="action" value="verify_password">
         <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required autofocus>
+            <label for="password">🔑 Cloud Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your 2FA password" required
+                autofocus>
         </div>
-        <button type="submit" class="btn-success">🔐 Verify</button>
+        <button type="submit" class="btn-success" style="width: 100%; font-size: 1.125rem;">🔐 Verify Password</button>
     </form>
     <form method="POST" style="margin-top: 1rem;">
         <input type="hidden" name="action" value="start_over">
-        <button type="submit" class="btn-secondary">🔙 Start Over</button>
+        <button type="submit" class="btn-secondary" style="width: 100%;">🔙 Start Over</button>
     </form>
     {% endif %}
 </div>
