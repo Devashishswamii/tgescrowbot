@@ -344,6 +344,34 @@ async def set_escrow_address_command(update: Update, context: ContextTypes.DEFAU
         parse_mode='HTML'
     )
 
+@handle_errors
+async def show_bot_escrow_addresses_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show all configured bot escrow wallets (Admin only)"""
+    user_id = update.effective_user.id
+    if user_id not in ADMIN_USER_IDS:
+        return
+
+    networks = [
+        'USDT (BEP20)',
+        'USDT (TRC20)',
+        'BTC',
+        'LTC',
+        'TON'
+    ]
+    
+    msg = "🔐 <b>Bot Escrow Addresses:</b>\n\n"
+    
+    for net in networks:
+        addr = database.get_config(f"wallet_{net}")
+        if not addr:
+            addr = "❌ Not Set"
+        else:
+            addr = f"<code>{addr}</code>"
+        
+        msg += f"🔹 <b>{net}:</b>\n{addr}\n\n"
+    
+    await update.message.reply_text(msg, parse_mode='HTML')
+
 async def check_and_send_transaction_info(update, context, group_id):
     """Check if both parties ready and send info"""
     deal = database.get_deal_by_group(group_id)
@@ -1066,6 +1094,7 @@ def main():
     
     # ADMIN: Set Bot Escrow Wallet
     app.add_handler(CommandHandler("setescrow", set_escrow_address_command))
+    app.add_handler(CommandHandler("showescrow", show_bot_escrow_addresses_command))
     
     # Group creation
     app.add_handler(CommandHandler("create", create_command))  # NEW: Simple /create command
