@@ -291,6 +291,125 @@ async def buyer_address_command(update: Update, context: ContextTypes.DEFAULT_TY
         )
 
 @handle_errors
+async def set_escrow_address_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Set bot's escrow wallet for a specific network (Admin only)"""
+    user_id = update.effective_user.id
+    if user_id not in ADMIN_USER_IDS:
+        return
+
+    if len(context.args) < 2:
+        await update.message.reply_text(
+            "<b>Usage: /setescrow <NETWORK> <ADDRESS></b>\n"
+            "Networks: BTC, LTC, BEP20, TRC20, TON",
+            parse_mode='HTML'
+        )
+        return
+
+    network_input = context.args[0].upper()
+    address = context.args[1]
+
+    # Map input to standard keys
+    network_map = {
+        'BEP20': 'USDT (BEP20)',
+        'BSC': 'USDT (BEP20)',
+        'ETH': 'USDT (BEP20)',
+        'TRC20': 'USDT (TRC20)',
+        'TRX': 'USDT (TRC20)',
+        'BTC': 'BTC',
+        'BITCOIN': 'BTC',
+        'LTC': 'LTC',
+        'LITECOIN': 'LTC',
+        'TON': 'TON'
+    }
+    
+    network_key = network_map.get(network_input, network_input)
+    
+    # Save to DB (using global addresses table)
+    # database.add_crypto_address(currency=network_key, address=address) -> This function appends
+    # We want to UPSERT or Replace. 
+    # Let's assume add_crypto_address is fine, but we need a way to retrieval specific one.
+    # Actually, let's just use 'crypto_addresses' table but ensure we can fetch by label/network.
+    # For simplicity in this 'bot.py', I'll use a direct DB call or a helper if available.
+    # Checking database.py: add_crypto_address takes (currency, address, network, label)
+    
+    # Let's just use a dedicated key in 'config' table or 'crypto_addresses' with strict labels?
+    # The user said "in admin panel configure...". 
+    # I will use `database.set_config(f"wallet_{network_key}", address)` for simplicity and reliability.
+    database.set_config(f"wallet_{network_key}", address)
+    
+    await update.message.reply_text(
+        f"✅ <b>Escrow Address Set!</b>\n"
+        f"Network: {network_key}\n"
+        f"Address: <code>{address}</code>",
+        parse_mode='HTML'
+    )
+
+async def check_and_send_transaction_info(update, context, group_id):
+    """Check if both parties ready and send info"""
+    deal = database.get_deal_by_group(group_id)
+    if not deal:
+        return
+
+    # deal structure: (deal_id, buyer_id, seller_id, buyer_address, seller_address, bot_address, status)
+    # Indexes: 0=id, 1=buy_id, 2=sell_id, 3=buy_addr, 4=sell_addr
+    
+    buyer_addr = deal[3]
+    seller_addr = deal[4]
+    
+    if buyer_addr and seller_addr:
+        # Both ready! Trigger Info.
+        
+        # 1. Detect Network from BUYER address (Deposit comes from Buyer)
+        is_valid, network = validators.validate_crypto_address(buyer_addr)
+        if not network:
+            network = "Unknown"
+        
+        # 2. Fetch Bot Address
+        # Try specific config first
+        bot_wallet = database.get_config(f"wallet_{network}")
+        
+        # Fallback if specific not found (e.g. USDT BEP20 not set)
+        if not bot_wallet:
+             bot_wallet = "NOT_SET_CONTACT_ADMIN"
+        
+        # 3. Get User Usernames for display
+        try:
+             # We need to fetch chat members to get names? Or use what we have in DB?
+             # database.get_all_users() returns list.
+             # Let's just use mentions based on IDs if possible, or "Buyer"
+             pass
+        except:
+            pass
+
+        # Construct Message (Screenshot style)
+        msg = (
+            "📍 <b>TRANSACTION INFORMATION</b>\n\n"
+            "⚡ <b>SELLER</b>\n"
+            # We don't have username readily available in 'deal' tuple. 
+            # We can use tg-link: <a href='tg://user?id={deal[2]}'>User {deal[2]}</a>
+            f"<a href='tg://user?id={deal[2]}'>Seller (ID: {deal[2]})</a>\n\n"
+            "⚡ <b>BUYER</b>\n"
+            f"<a href='tg://user?id={deal[1]}'>Buyer (ID: {deal[1]})</a>\n\n"
+            "📝 <b>TRANSACTION ID</b>\n"
+            f"<code>{deal[0]}</code>\n\n"
+            "🟢 <b>ESCROW ADDRESS</b>\n"
+            f"<code>{bot_wallet}</code> [{network}]\n\n"
+            "⚠️ <b>IMPORTANT: AVOID SCAMS!</b>\n"
+            "💬 Always check the escrow address in @MiddleCryptoChat.\n"
+            "For vendors: Confirm the balance on blockchain explorers.\n\n"
+            "<b>Useful commands:</b>\n"
+            "📑 <code>/pay_seller</code> = Always pays the seller.\n"
+            "💸 <code>/refund_buyer</code> = Always refunds the buyer.\n\n"
+            "<i>Remember, /pay_seller won't refund your money if you're the buyer, regardless of what anyone says.</i>"
+        )
+        
+        await context.bot.send_message(
+            chat_id=group_id,
+            text=msg,
+            parse_mode='HTML'
+        )
+
+@handle_errors
 async def show_addresses_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show all addresses in the escrow group"""
     if update.effective_chat.type not in ['group', 'supergroup']:
