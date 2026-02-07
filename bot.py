@@ -372,41 +372,41 @@ async def check_and_send_transaction_info(update, context, group_id):
         if not bot_wallet:
              bot_wallet = "NOT_SET_CONTACT_ADMIN"
         
-        # 3. Get User Usernames for display
-        try:
-             # We need to fetch chat members to get names? Or use what we have in DB?
-             # database.get_all_users() returns list.
-             # Let's just use mentions based on IDs if possible, or "Buyer"
-             pass
-        except:
-            pass
+        # 3. Get User Usernames/Links
+        # Use deal[1] (buyer_id) and deal[2] (seller_id)
+        # We try to get usernames if possible, but IDs are safer.
+        # User requested specific format with @Mentions if available.
+        # Telethon logic isn't here, checks update.effective_user roughly.
+        # We construct deep links.
+        
+        explorer_link = get_explorer_link(network, bot_wallet)
 
-        # Construct Message (Screenshot style)
+        # Construct Message (Exact Match to User Request)
         msg = (
             "📍 <b>TRANSACTION INFORMATION</b>\n\n"
-            "⚡ <b>SELLER</b>\n"
-            # We don't have username readily available in 'deal' tuple. 
-            # We can use tg-link: <a href='tg://user?id={deal[2]}'>User {deal[2]}</a>
-            f"<a href='tg://user?id={deal[2]}'>Seller (ID: {deal[2]})</a>\n\n"
-            "⚡ <b>BUYER</b>\n"
-            f"<a href='tg://user?id={deal[1]}'>Buyer (ID: {deal[1]})</a>\n\n"
+            "⚡️ <b>SELLER</b>\n"
+            f"<a href='tg://user?id={deal[2]}'>Seller</a>\n"
+            f"[{deal[2]}]\n\n"
+            "⚡️ <b>BUYER</b>\n"
+            f"<a href='tg://user?id={deal[1]}'>Buyer</a>\n"
+            f"[{deal[1]}]\n\n"
             "📝 <b>TRANSACTION ID</b>\n"
             f"<code>{deal[0]}</code>\n\n"
-            "🟢 <b>ESCROW ADDRESS</b>\n"
+            "🟢 <b>ESCROW ADDRESS:</b>\n"
             f"<code>{bot_wallet}</code> [{network}]\n\n"
-            "⚠️ <b>IMPORTANT: AVOID SCAMS!</b>\n"
-            "💬 Always check the escrow address in @MiddleCryptoChat.\n"
-            "For vendors: Confirm the balance on blockchain explorers.\n\n"
+            f"🌐 <b>BLOCKCHAIN LINK:</b>   {explorer_link}\n\n"
+            "⚠️ <b>IMPORTANT: AVOID SCAMS!</b>\n\n"
             "<b>Useful commands:</b>\n"
-            "📑 <code>/pay_seller</code> = Always pays the seller.\n"
-            "💸 <code>/refund_buyer</code> = Always refunds the buyer.\n\n"
-            "<i>Remember, /pay_seller won't refund your money if you're the buyer, regardless of what anyone says.</i>"
+            "🗒 <code>/pay_seller</code> = Always pays the seller.\n"
+            "🗒 <code>/refund_buyer</code> = Always refunds the buyer.\n\n"
+            "Remember, <code>/pay_seller</code> <i>won't refund your money</i> if you're the buyer, regardless of what <i>anyone</i> says."
         )
         
         await context.bot.send_message(
             chat_id=group_id,
             text=msg,
-            parse_mode='HTML'
+            parse_mode='HTML',
+            disable_web_page_preview=True
         )
 
 @handle_errors
