@@ -34,10 +34,8 @@ def login():
     if request.method == 'POST':
         password = request.form.get('password')
         
-        # Check environment variable first, then fall back to database
-        admin_password = os.getenv('ADMIN_PANEL_PASSWORD')
-        if not admin_password:
-            admin_password = database.get_config('admin_password') or 'admin123'
+        # Read password ONLY from environment variable
+        admin_password = os.getenv('ADMIN_PANEL_PASSWORD', 'admin123')
         
         if password == admin_password:
             session['logged_in'] = True

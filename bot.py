@@ -15,10 +15,10 @@ from config import BOT_TOKEN, ADMIN_USER_IDS, ADMIN_USERNAMES
 import messages
 import database
 import validators
-import user_client
 import asyncio
 import os
 from bot_error_wrapper import handle_errors, safe_call
+from create_command import create_command
 
 # Logging setup
 logging.basicConfig(
@@ -921,6 +921,7 @@ def main():
     app.add_handler(CommandHandler("setcryptoaddress", set_crypto_address_command))
     
     # Group creation
+    app.add_handler(CommandHandler("create", create_command))  # NEW: Simple /create command
     app.add_handler(CommandHandler("creategroup", create_escrow_group_command))
     app.add_handler(CommandHandler("joindeal", join_deal_command))
     

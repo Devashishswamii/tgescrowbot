@@ -224,3 +224,19 @@ def increment_stat(key):
             supabase.table('statistics').update({'value': new_value}).eq('key', key).execute()
     except Exception as e:
         print(f"Error incrementing stat: {e}")
+
+# Telegram Session Management
+@safe_call
+def get_telegram_admin_session():
+    """
+    Get the most recent admin Telegram session from database
+    Returns: dict with session_string, user_id, phone, etc. or None
+    """
+    try:
+        result = supabase.table('telegram_sessions').select('*').order('updated_at', desc=True).limit(1).execute()
+        if result.data and len(result.data) > 0:
+            return result.data[0]
+        return None
+    except Exception as e:
+        print(f"Error getting telegram admin session: {e}")
+        return None

@@ -3,24 +3,20 @@ from flask import Flask, request, render_template, redirect, url_for, session, f
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
-# Import database with error handling - use relative import to ensure we get the right one
+# Import database with error handling
 try:
-    from . import database
+    import database
     DB_AVAILABLE = True
-except:
-    try:
-        import database
-        DB_AVAILABLE = True
-    except Exception as e:
-        print(f"Database import error: {e}")
-        DB_AVAILABLE = False
-        class database:
-            @staticmethod
-            def get_statistics():
-                return {'total_deals': 0, 'disputes_resolved': 0}
-            @staticmethod
-            def get_all_bot_users():
-                return []
+except Exception as e:
+    print(f"Database import error: {e}")
+    DB_AVAILABLE = False
+    class database:
+        @staticmethod
+        def get_statistics():
+            return {'total_deals': 0, 'disputes_resolved': 0}
+        @staticmethod
+        def get_all_bot_users():
+            return []
         @staticmethod
         def get_config(key):
             return None
@@ -116,11 +112,7 @@ def dashboard():
     try:
         stats = database.get_statistics() or {'total_deals': 0, 'disputes_resolved': 0}
         users = database.get_all_bot_users() or []
-        return render_template('admin_dashboard.html', 
-                             stats=stats, 
-                             users=users,
-                             users_count=len(users),
-                             recent_users=users[:10])  # Show last 10 users
+        return render_template('admin_dashboard.html', stats=stats, users=users)
     except Exception as e:
         print(f"Dashboard error: {e}")
         import traceback
@@ -262,167 +254,6 @@ def telegram_config():
 def telegram_logout():
     flash('Session management is not available in serverless deployment', 'info')
     return redirect(url_for('session_info'))
-
-@app.route('/telegram-login', methods=['GET', 'POST'])
-@login_required
-def telegram_login():
-    """Telegram login page with working authentication"""
-    try:
-        import asyncio
-        import sys
-        import os
-        
-        # Add current directory to path for imports
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        if current_dir not in sys.path:
-            sys.path.insert(0, current_dir)
-        
-        from telegram_auth import TelegramAuth
-    except ImportError as e:
-        flash(f'Telegram authentication module not available: {str(e)}', 'danger')
-        return render_template('telegram_login.html', session_data=None, login_step='phone', phone=None)
-    
-    # Check for existing session
-    session_data = database.get_telegram_session()
-    print(f"🔍 Checking for Telegram session... Found: {session_data is not None}")
-    if session_data:
-        print(f"✅ Session exists for User ID: {session_data.get('user_id')}, Phone: {session_data.get('phone')}")
-    
-    if request.method == 'POST':
-        action = request.form.get('action')
-        
-        if action == 'start_over':
-            # Clear all telegram session data
-            session.pop('tg_step', None)
-            session.pop('tg_phone', None)
-            session.pop('tg_phone_code_hash', None)
-            session.pop('tg_temp_session', None)
-            flash('Started over. Please enter your phone number.', 'info')
-            return redirect(url_for('telegram_login'))
-        
-        if action == 'send_code':
-            phone = request.form.get('phone')
-            if not phone:
-                flash('Please enter your phone number', 'danger')
-                return redirect(url_for('telegram_login'))
-            
-            # Send verification code
-            auth = TelegramAuth()
-            try:
-                result = asyncio.run(auth.send_code(phone))
-                if result['success']:
-                    session['tg_phone'] = phone
-                    session['tg_temp_session'] = result['temp_session']
-                    session['tg_phone_code_hash'] = result['phone_code_hash']  # Store this too!
-                    session['tg_step'] = 'code'
-                    flash(f"✅ Code sent to {phone}! Enter it below.", 'success')
-                else:
-                    flash(f"Error: {result.get('error', 'Unknown error')}", 'danger')
-            except Exception as e:
-                flash(f"Error sending code: {str(e)}", 'danger')
-            
-            return redirect(url_for('telegram_login'))
-        
-        elif action == 'verify_code':
-            phone = session.get('tg_phone')
-            temp_session = session.get('tg_temp_session')
-            phone_code_hash = session.get('tg_phone_code_hash')
-            code = request.form.get('code')
-            
-            if not all([phone, temp_session, phone_code_hash, code]):
-                flash('Session expired. Please start over.', 'danger')
-                session.pop('tg_step', None)
-                return redirect(url_for('telegram_login'))
-            
-            # Verify code with temp session AND phone_code_hash
-            auth = TelegramAuth()
-            try:
-                result = asyncio.run(auth.verify_code(temp_session, phone, code, phone_code_hash))
-                
-                if result['success']:
-                    # Save to database
-                    print(f"💾 Attempting to save session to database...")
-                    save_result = database.save_telegram_session(
-                        result['session_string'],
-                        phone,
-                        result['user_data']
-                    )
-                    
-                    if save_result:
-                        user_id = result['user_data']['id']
-                        flash(f'🎉 SUCCESS! Logged in as User ID: {user_id}', 'success')
-                        print(f"✅ Telegram login successful for User ID: {user_id}")
-                    else:
-                        flash('⚠️ Login successful but failed to save session. Contact admin.', 'warning')
-                    
-                    # Clear all session data
-                    session.pop('tg_step', None)
-                    session.pop('tg_phone', None)
-                    session.pop('tg_temp_session', None)
-                    session.pop('tg_phone_code_hash', None)
-                elif result.get('requires_password'):
-                    session['tg_step'] = 'password'
-                    session['tg_temp_session'] = result['temp_session']
-                    flash('2FA enabled. Enter your password.', 'info')
-                elif result.get('expired'):
-                    session.pop('tg_step', None)
-                    session.pop('tg_temp_session', None)
-                    flash(result.get('error'), 'danger')
-                else:
-                    flash(result.get('error', 'Invalid code'), 'danger')
-            except Exception as e:
-                flash(f"Error: {str(e)}", 'danger')
-                print(f"❌ Error during verify_code: {e}")
-            
-            return redirect(url_for('telegram_login'))
-        
-        elif action == 'verify_password':
-            password = request.form.get('password')
-            temp_session = session.get('tg_temp_session')
-            
-            if not password or not temp_session:
-                flash('Please enter your password', 'danger')
-                return redirect(url_for('telegram_login'))
-            
-            # Verify 2FA password
-            auth = TelegramAuth()
-            try:
-                result = asyncio.run(auth.verify_password(temp_session, password))
-                
-                if result['success']:
-                    phone = session.get('tg_phone')
-                    database.save_telegram_session(
-                        result['session_string'],
-                        phone,
-                        result['user_data']
-                    )
-                    flash('Successfully logged in with 2FA! You can now create groups with this account.', 'success')
-                    session.pop('tg_step', None)
-                    session.pop('tg_phone', None)
-                    session.pop('tg_phone_code_hash', None)
-                    session.pop('tg_temp_session', None)
-                else:
-                    flash(f"Error: {result.get('error', 'Invalid password')}", 'danger')
-            except Exception as e:
-                flash(f"Error verifying password: {str(e)}", 'danger')
-            
-            return redirect(url_for('telegram_login'))
-        
-        elif action == 'logout':
-            if session_data:
-                database.delete_telegram_session(session_data['phone'])
-                flash('Logged out from Telegram', 'success')
-            return redirect(url_for('telegram_login'))
-    
-    # GET request - show login form or session details
-    login_step = session.get('tg_step', 'phone')
-    
-    print(f"📄 Rendering template with session_data: {session_data is not None}, login_step: {login_step}")
-    
-    return render_template('telegram_login.html',
-                         session_data=session_data,
-                         login_step=login_step,
-                         phone=session.get('tg_phone'))
 
 @app.route('/crypto-addresses', methods=['GET', 'POST'])
 @login_required
