@@ -309,7 +309,8 @@ def telegram_login():
                 result = asyncio.run(auth.send_code(phone))
                 if result['success']:
                     session['tg_phone'] = phone
-                    session['tg_temp_session'] = result['temp_session']  # Store temp session
+                    session['tg_temp_session'] = result['temp_session']
+                    session['tg_phone_code_hash'] = result['phone_code_hash']  # Store this too!
                     session['tg_step'] = 'code'
                     flash(f"✅ Code sent to {phone}! Enter it below.", 'success')
                 else:
@@ -322,17 +323,18 @@ def telegram_login():
         elif action == 'verify_code':
             phone = session.get('tg_phone')
             temp_session = session.get('tg_temp_session')
+            phone_code_hash = session.get('tg_phone_code_hash')
             code = request.form.get('code')
             
-            if not all([phone, temp_session, code]):
+            if not all([phone, temp_session, phone_code_hash, code]):
                 flash('Session expired. Please start over.', 'danger')
                 session.pop('tg_step', None)
                 return redirect(url_for('telegram_login'))
             
-            # Verify code with temp session
+            # Verify code with temp session AND phone_code_hash
             auth = TelegramAuth()
             try:
-                result = asyncio.run(auth.verify_code(temp_session, phone, code))
+                result = asyncio.run(auth.verify_code(temp_session, phone, code, phone_code_hash))
                 
                 if result['success']:
                     # Save to database
@@ -346,6 +348,7 @@ def telegram_login():
                     session.pop('tg_step', None)
                     session.pop('tg_phone', None)
                     session.pop('tg_temp_session', None)
+                    session.pop('tg_phone_code_hash', None)
                 elif result.get('requires_password'):
                     session['tg_step'] = 'password'
                     session['tg_temp_session'] = result['temp_session']

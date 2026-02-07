@@ -1,6 +1,6 @@
 """
-Telegram Authentication Module - FIXED FOR SERVERLESS
-Stores temporary session to maintain state between requests
+Telegram Authentication Module - PROPER FIX
+Stores both temp_session AND phone_code_hash
 """
 import os
 from telethon import TelegramClient
@@ -18,24 +18,25 @@ class TelegramAuth:
         self.api_hash = os.getenv('API_HASH', '')
         
     async def send_code(self, phone):
-        """Send verification code and return temp session"""
+        """Send verification code and return temp session + phone_code_hash"""
         client = None
         try:
-            # Create new client
             client = TelegramClient(StringSession(), self.api_id, self.api_hash)
             await client.connect()
             
             # Send code request
-            await client.send_code_request(phone)
+            result = await client.send_code_request(phone)
             
-            # IMPORTANT: Save the session string to maintain state
+            # Save session AND phone_code_hash
             temp_session = client.session.save()
+            phone_code_hash = result.phone_code_hash
             
             await client.disconnect()
             
             return {
                 'success': True,
-                'temp_session': temp_session,  # Return this to store
+                'temp_session': temp_session,
+                'phone_code_hash': phone_code_hash,  # Need this too!
                 'phone': phone
             }
             
@@ -54,19 +55,19 @@ class TelegramAuth:
                 'error': f'Error: {str(e)}'
             }
     
-    async def verify_code(self, temp_session, phone, code):
-        """Verify code using the temp session from send_code"""
+    async def verify_code(self, temp_session, phone, code, phone_code_hash):
+        """Verify code using temp session AND phone_code_hash"""
         client = None
         try:
-            # Restore client from temp session (maintains the same connection state!)
+            # Restore client from temp session
             client = TelegramClient(StringSession(temp_session), self.api_id, self.api_hash)
             await client.connect()
             
-            # Sign in with the code
+            # Sign in with code AND phone_code_hash
             try:
-                await client.sign_in(phone, code)
+                await client.sign_in(phone, code, phone_code_hash=phone_code_hash)
                 
-                # Success! Get final session
+                # Success!
                 session_string = client.session.save()
                 me = await client.get_me()
                 
@@ -87,7 +88,7 @@ class TelegramAuth:
                 }
                 
             except SessionPasswordNeededError:
-                # 2FA enabled - keep this temp session
+                # 2FA enabled
                 temp_session_2fa = client.session.save()
                 await client.disconnect()
                 
@@ -156,7 +157,7 @@ class TelegramAuth:
                 'error': f'Invalid password: {str(e)}'
             }
 
-# Helper to get client from saved session
+# Helper functions
 async def get_telegram_client(session_string, api_id=None, api_hash=None):
     """Get Telegram client from saved session"""
     if not api_id:
@@ -173,7 +174,6 @@ async def get_telegram_client(session_string, api_id=None, api_hash=None):
     
     return client
 
-# Create group helper
 async def create_escrow_group(session_string, title, description=""):
     """Create Telegram group using saved session"""
     client = await get_telegram_client(session_string)
