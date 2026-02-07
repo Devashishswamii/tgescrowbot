@@ -202,6 +202,36 @@ def settings():
         print(f"Settings error: {e}")
         return f"Error: {str(e)}", 500
 
+@app.route('/telegram-config', methods=['GET', 'POST'])
+@login_required
+def telegram_config():
+    try:
+        if request.method == 'POST':
+            api_id = request.form.get('api_id')
+            api_hash = request.form.get('api_hash')
+            phone = request.form.get('phone')
+            
+            if api_id:
+                database.update_config('telegram_api_id', api_id)
+            if api_hash:
+                database.update_config('telegram_api_hash', api_hash)
+            if phone:
+                database.update_config('telegram_phone', phone)
+            
+            flash('Telegram credentials saved!', 'success')
+            return redirect(url_for('telegram_config'))
+        
+        config = {
+            'api_id': database.get_config('telegram_api_id') or '',
+            'api_hash': database.get_config('telegram_api_hash') or '',
+            'phone': database.get_config('telegram_phone') or ''
+        }
+        
+        return render_template('telegram_config.html', config=config)
+    except Exception as e:
+        print(f"Telegram config error: {e}")
+        return f"Error: {str(e)}", 500
+
 @app.route('/telegram-logout', methods=['POST'])
 @login_required
 def telegram_logout():

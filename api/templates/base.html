@@ -214,6 +214,55 @@
             border-bottom: none;
         }
 
+        /* Mobile Card View for Tables */
+        @media (max-width: 768px) {
+
+            .table-responsive table,
+            .table-responsive thead,
+            .table-responsive tbody,
+            .table-responsive th,
+            .table-responsive td,
+            .table-responsive tr {
+                display: block;
+            }
+
+            .table-responsive thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            .table-responsive tr {
+                border: 1px solid #e2e8f0;
+                border-radius: 0.75rem;
+                margin-bottom: 1rem;
+                background: white;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                padding: 1rem;
+            }
+
+            .table-responsive td {
+                border: none;
+                border-bottom: 1px solid #f1f5f9;
+                position: relative;
+                padding-left: 0;
+                padding-right: 0;
+                padding-top: 0.75rem;
+                padding-bottom: 0.75rem;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                white-space: normal !important;
+                /* Allow wrapping on mobile cards */
+                overflow: visible !important;
+                text-overflow: clip !important;
+            }
+
+            .table-responsive td:last-child {
+                border-bottom: none;
+            }
+        }
+
         /* Forms */
         .form-group {
             margin-bottom: 1rem;
