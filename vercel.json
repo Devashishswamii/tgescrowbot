@@ -1,0 +1,20 @@
+{
+    "version": 2,
+    "name": "escrow-admin-panel",
+    "builds": [
+        {
+            "src": "admin-panel/app.py",
+            "use": "@vercel/python"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/static/(.*)",
+            "dest": "admin-panel/static/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "admin-panel/app.py"
+        }
+    ]
+}
