@@ -288,6 +288,15 @@ def telegram_login():
     if request.method == 'POST':
         action = request.form.get('action')
         
+        if action == 'start_over':
+            # Clear all telegram session data
+            session.pop('tg_step', None)
+            session.pop('tg_phone', None)
+            session.pop('tg_phone_code_hash', None)
+            session.pop('tg_temp_session', None)
+            flash('Started over. Please enter your phone number.', 'info')
+            return redirect(url_for('telegram_login'))
+        
         if action == 'send_code':
             phone = request.form.get('phone')
             if not phone:
@@ -302,7 +311,7 @@ def telegram_login():
                     session['tg_phone'] = phone
                     session['tg_phone_code_hash'] = result['phone_code_hash']
                     session['tg_step'] = 'code'
-                    flash(result['message'], 'success')
+                    flash(f"Verification code sent to {phone}", 'success')
                 else:
                     flash(f"Error: {result.get('error', 'Unknown error')}", 'danger')
             except Exception as e:
@@ -312,9 +321,10 @@ def telegram_login():
         
         elif action == 'verify_code':
             phone = session.get('tg_phone')
+            phone_code_hash = session.get('tg_phone_code_hash')
             code = request.form.get('code')
             
-            if not all([phone, code]):
+            if not all([phone, phone_code_hash, code]):
                 flash('Missing required information. Please start over.', 'danger')
                 session.pop('tg_step', None)
                 return redirect(url_for('telegram_login'))
@@ -322,7 +332,7 @@ def telegram_login():
             # Verify code
             auth = TelegramAuth()
             try:
-                result = asyncio.run(auth.verify_code(phone, code))
+                result = asyncio.run(auth.verify_code(phone, code, phone_code_hash))
                 
                 if result['success']:
                     # Save session to database
@@ -331,16 +341,19 @@ def telegram_login():
                         phone,
                         result['user_data']
                     )
-                    flash('Successfully logged in to Telegram!', 'success')
+                    flash('Successfully logged in to Telegram! You can now create groups with this account.', 'success')
                     session.pop('tg_step', None)
                     session.pop('tg_phone', None)
                     session.pop('tg_phone_code_hash', None)
                 elif result.get('requires_password'):
                     session['tg_step'] = 'password'
                     session['tg_temp_session'] = result['temp_session']
-                    flash(result['message'], 'info')
+                    flash(result.get('message', '2FA enabled. Enter your password.'), 'info')
+                elif result.get('expired'):
+                    session.pop('tg_step', None)
+                    flash(result.get('error'), 'danger')
                 else:
-                    flash(f"Error: {result.get('error', 'Invalid code')}", 'danger')
+                    flash(f"{result.get('error', 'Invalid code')}", 'danger')
             except Exception as e:
                 flash(f"Error verifying code: {str(e)}", 'danger')
             
@@ -366,7 +379,7 @@ def telegram_login():
                         phone,
                         result['user_data']
                     )
-                    flash('Successfully logged in with 2FA!', 'success')
+                    flash('Successfully logged in with 2FA! You can now create groups with this account.', 'success')
                     session.pop('tg_step', None)
                     session.pop('tg_phone', None)
                     session.pop('tg_phone_code_hash', None)

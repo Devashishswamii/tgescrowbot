@@ -42,17 +42,20 @@
         </tbody>
     </table>
 
-    <form method="POST" style="margin-top: 1rem;">
-        <input type="hidden" name="action" value="logout">
-        <button type="submit" class="btn-danger" onclick="return confirm('Logout from Telegram?');">
-            🚪 Logout
-        </button>
-    </form>
+    <div style="margin-top: 1.5rem;">
+        <form method="POST" style="display:inline;">
+            <input type="hidden" name="action" value="logout">
+            <button type="submit" class="btn-danger" onclick="return confirm('Logout from Telegram?');">
+                🚪 Logout
+            </button>
+        </form>
+    </div>
 </div>
 
-<div class="alert alert-info">
-    ✅ <strong>Success!</strong> You're logged in to Telegram. Your session is stored securely in the database and will
-    persist across deployments.
+<div class="alert alert-success">
+    ✅ <strong>Ready to Create Groups!</strong><br>
+    Your Telegram session is saved with User ID: <code>{{ session_data.user_id }}</code><br>
+    You can now use this account to create escrow groups in your bot!
 </div>
 
 {% else %}
@@ -68,7 +71,7 @@
         <div class="form-group">
             <label for="phone">Phone Number</label>
             <input type="text" id="phone" name="phone" placeholder="+1234567890" required autofocus>
-            <small style="color: #64748b;">Include country code, e.g., +1 for US</small>
+            <small style="color: #64748b;">Include country code, e.g., +1 for US, +91 for India</small>
         </div>
         <button type="submit" class="btn-success">📱 Send Code</button>
     </form>
@@ -86,7 +89,10 @@
             <small style="color: #64748b;">Check your Telegram app or SMS</small>
         </div>
         <button type="submit" class="btn-success">✅ Verify Code</button>
-        <a href="{{ url_for('telegram_login') }}" class="btn-secondary">🔙 Start Over</a>
+        <form method="POST" style="display:inline; margin-left: 0.5rem;">
+            <input type="hidden" name="action" value="start_over">
+            <button type="submit" class="btn-secondary">🔙 Start Over</button>
+        </form>
     </form>
 
     {% elif login_step == 'password' %}
@@ -102,24 +108,37 @@
             <small style="color: #64748b;">This is your Telegram cloud password</small>
         </div>
         <button type="submit" class="btn-success">🔐 Verify Password</button>
-        <a href="{{ url_for('telegram_login') }}" class="btn-secondary">🔙 Start Over</a>
+        <form method="POST" style="display:inline; margin-left: 0.5rem;">
+            <input type="hidden" name="action" value="start_over">
+            <button type="submit" class="btn-secondary">🔙 Start Over</button>
+        </form>
     </form>
     {% endif %}
+</div>
+
+<div class="card">
+    <h2>🎯 What You Can Do After Login</h2>
+    <ul style="margin-left: 1.5rem; margin-top: 1rem; color: #64748b;">
+        <li><strong>Create Escrow Groups:</strong> Automatically create groups for each transaction</li>
+        <li><strong>Manage Channels:</strong> Create and manage Telegram channels</li>
+        <li><strong>Send Messages:</strong> Send automated messages as this account</li>
+        <li><strong>Full API Access:</strong> Use complete Telegram API functionality</li>
+    </ul>
 </div>
 
 <div class="card">
     <h2>ℹ️ How This Works</h2>
     <ul style="margin-left: 1.5rem; margin-top: 1rem; color: #64748b;">
         <li>Your session is stored as a <strong>StringSession</strong> in the database</li>
-        <li>No files are created - perfect for serverless!</li>
-        <li>Session persists across deployments</li>
-        <li>Fully secure encrypted connection to Telegram</li>
+        <li>No files needed - perfect for serverless Vercel!</li>
+        <li>Session persists forever until you logout</li>
+        <li>Your User ID is saved for creating groups</li>
+        <li>Fully encrypted connection to Telegram</li>
     </ul>
 </div>
 
 <div class="alert alert-warning">
-    🔒 <strong>Security:</strong> Your session data is encrypted and stored securely. Never share your login code or
-    password with anyone.
+    🔒 <strong>Security:</strong> Your session data is encrypted. Never share your login code or password.
 </div>
 {% endif %}
 {% endblock %}
