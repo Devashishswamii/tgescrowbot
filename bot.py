@@ -242,6 +242,8 @@ async def seller_address_command(update: Update, context: ContextTypes.DEFAULT_T
         
         if deal:
             deal_id = deal[0]
+            existing_buyer_addr = deal[3]
+            
             database.update_deal_address(deal_id, 'seller', address)
             
             # Role Declaration Message
@@ -249,10 +251,16 @@ async def seller_address_command(update: Update, context: ContextTypes.DEFAULT_T
                 "📍 <b>ESCROW ROLE DECLARATION</b>\n\n"
                 f"👤 <b>SELLER</b> <a href='tg://user?id={user.id}'>{user.first_name}</a> | Userid: [{user.id}]\n\n"
                 "✅ <b>SELLER WALLET</b>\n"
-                f"<code>{address}</code> [{coin_type}]\n\n"
-                "💬 <b>Buyer, please enter your receiving address using:</b> <code>/buyer ADDRESS</code>\n"
-                f"💡 <i>Replace ADDRESS with your {coin_type} wallet address.</i>"
+                f"<code>{address}</code> [{coin_type}]"
             )
+            
+            # Only show prompt via text if Buyer is NOT ready
+            if not existing_buyer_addr:
+                msg += (
+                    "\n\n"
+                    "💬 <b>Buyer, please enter your receiving address using:</b> <code>/buyer ADDRESS</code>\n"
+                    f"💡 <i>Replace ADDRESS with your {coin_type} wallet address.</i>"
+                )
             
             await update.message.reply_text(msg, parse_mode='HTML')
             
@@ -300,6 +308,8 @@ async def buyer_address_command(update: Update, context: ContextTypes.DEFAULT_TY
         
         if deal:
             deal_id = deal[0]
+            existing_seller_addr = deal[4]
+            
             database.update_deal_address(deal_id, 'buyer', address)
             
             # Role Declaration Message
@@ -307,10 +317,16 @@ async def buyer_address_command(update: Update, context: ContextTypes.DEFAULT_TY
                 "📍 <b>ESCROW ROLE DECLARATION</b>\n\n"
                 f"👤 <b>BUYER</b> <a href='tg://user?id={user.id}'>{user.first_name}</a> | Userid: [{user.id}]\n\n"
                 "✅ <b>BUYER WALLET</b>\n"
-                f"<code>{address}</code> [{coin_type}]\n\n"
-                "💬 <b>Seller, please enter your receiving address using:</b> <code>/seller ADDRESS</code>\n"
-                f"💡 <i>Replace ADDRESS with your {coin_type} wallet address.</i>"
+                f"<code>{address}</code> [{coin_type}]"
             )
+            
+            # Only show prompt via text if Seller is NOT ready
+            if not existing_seller_addr:
+                msg += (
+                    "\n\n"
+                    "💬 <b>Seller, please enter your receiving address using:</b> <code>/seller ADDRESS</code>\n"
+                    f"💡 <i>Replace ADDRESS with your {coin_type} wallet address.</i>"
+                )
             
             await update.message.reply_text(msg, parse_mode='HTML')
 
