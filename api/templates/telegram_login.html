@@ -35,10 +35,6 @@
                 <td>@{{ session_data.username }}</td>
             </tr>
             {% endif %}
-            <tr>
-                <td><strong>Last Updated</strong></td>
-                <td>{{ session_data.updated_at[:19] }}</td>
-            </tr>
         </tbody>
     </table>
 
@@ -54,8 +50,7 @@
 
 <div class="alert alert-success">
     ✅ <strong>Ready to Create Groups!</strong><br>
-    Your Telegram session is saved with User ID: <code>{{ session_data.user_id }}</code><br>
-    You can now use this account to create escrow groups in your bot!
+    Your session is saved. You can now create escrow groups with this account!
 </div>
 
 {% else %}
@@ -65,80 +60,50 @@
 
     {% if login_step == 'phone' %}
     <!-- Step 1: Phone Number -->
-    <p style="color: #64748b; margin-bottom: 1.5rem;">Enter your phone number to receive a verification code.</p>
+    <p style="color: #64748b; margin-bottom: 1.5rem;">Enter your phone number with country code.</p>
     <form method="POST">
         <input type="hidden" name="action" value="send_code">
         <div class="form-group">
             <label for="phone">Phone Number</label>
-            <input type="text" id="phone" name="phone" placeholder="+1234567890" required autofocus>
-            <small style="color: #64748b;">Include country code, e.g., +1 for US, +91 for India</small>
+            <input type="tel" id="phone" name="phone" placeholder="+1234567890" required autofocus>
+            <small style="color: #64748b;">Include country code (e.g., +1, +91, +44)</small>
         </div>
         <button type="submit" class="btn-success">📱 Send Code</button>
     </form>
 
     {% elif login_step == 'code' %}
     <!-- Step 2: Verification Code -->
-    <p style="color: #64748b; margin-bottom: 1.5rem;">
-        Enter the verification code sent to <strong>{{ phone }}</strong>
-    </p>
+    <p style="color: #64748b; margin-bottom: 0.5rem;">Code sent to: <strong>{{ phone }}</strong></p>
     <form method="POST">
         <input type="hidden" name="action" value="verify_code">
         <div class="form-group">
             <label for="code">Verification Code</label>
             <input type="text" id="code" name="code" placeholder="12345" required autofocus>
-            <small style="color: #64748b;">Check your Telegram app or SMS</small>
+            <small style="color: #64748b;">Check Telegram app or SMS</small>
         </div>
-        <button type="submit" class="btn-success">✅ Verify Code</button>
-        <form method="POST" style="display:inline; margin-left: 0.5rem;">
-            <input type="hidden" name="action" value="start_over">
-            <button type="submit" class="btn-secondary">🔙 Start Over</button>
-        </form>
+        <button type="submit" class="btn-success">✅ Verify</button>
+    </form>
+    <form method="POST" style="margin-top: 1rem;">
+        <input type="hidden" name="action" value="start_over">
+        <button type="submit" class="btn-secondary">🔙 Start Over</button>
     </form>
 
     {% elif login_step == 'password' %}
     <!-- Step 3: 2FA Password -->
-    <p style="color: #64748b; margin-bottom: 1.5rem;">
-        Your account has 2FA enabled. Enter your cloud password.
-    </p>
+    <p style="color: #64748b; margin-bottom: 1.5rem;">2FA enabled. Enter your password.</p>
     <form method="POST">
         <input type="hidden" name="action" value="verify_password">
         <div class="form-group">
-            <label for="password">2FA Password</label>
-            <input type="password" id="password" name="password" placeholder="Enter your password" required autofocus>
-            <small style="color: #64748b;">This is your Telegram cloud password</small>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autofocus>
         </div>
-        <button type="submit" class="btn-success">🔐 Verify Password</button>
-        <form method="POST" style="display:inline; margin-left: 0.5rem;">
-            <input type="hidden" name="action" value="start_over">
-            <button type="submit" class="btn-secondary">🔙 Start Over</button>
-        </form>
+        <button type="submit" class="btn-success">🔐 Verify</button>
+    </form>
+    <form method="POST" style="margin-top: 1rem;">
+        <input type="hidden" name="action" value="start_over">
+        <button type="submit" class="btn-secondary">🔙 Start Over</button>
     </form>
     {% endif %}
-</div>
-
-<div class="card">
-    <h2>🎯 What You Can Do After Login</h2>
-    <ul style="margin-left: 1.5rem; margin-top: 1rem; color: #64748b;">
-        <li><strong>Create Escrow Groups:</strong> Automatically create groups for each transaction</li>
-        <li><strong>Manage Channels:</strong> Create and manage Telegram channels</li>
-        <li><strong>Send Messages:</strong> Send automated messages as this account</li>
-        <li><strong>Full API Access:</strong> Use complete Telegram API functionality</li>
-    </ul>
-</div>
-
-<div class="card">
-    <h2>ℹ️ How This Works</h2>
-    <ul style="margin-left: 1.5rem; margin-top: 1rem; color: #64748b;">
-        <li>Your session is stored as a <strong>StringSession</strong> in the database</li>
-        <li>No files needed - perfect for serverless Vercel!</li>
-        <li>Session persists forever until you logout</li>
-        <li>Your User ID is saved for creating groups</li>
-        <li>Fully encrypted connection to Telegram</li>
-    </ul>
-</div>
-
-<div class="alert alert-warning">
-    🔒 <strong>Security:</strong> Your session data is encrypted. Never share your login code or password.
 </div>
 {% endif %}
 {% endblock %}
