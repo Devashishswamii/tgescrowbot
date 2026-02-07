@@ -1064,6 +1064,9 @@ def main():
     app.add_handler(CommandHandler("showaddresses", show_addresses_command))
     app.add_handler(CommandHandler("setcryptoaddress", set_crypto_address_command))
     
+    # ADMIN: Set Bot Escrow Wallet
+    app.add_handler(CommandHandler("setescrow", set_escrow_address_command))
+    
     # Group creation
     app.add_handler(CommandHandler("create", create_command))  # NEW: Simple /create command
     app.add_handler(CommandHandler("creategroup", create_escrow_group_command))
