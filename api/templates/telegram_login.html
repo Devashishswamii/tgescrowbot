@@ -5,40 +5,121 @@
 {% block content %}
 <h1>📱 Telegram Account Login</h1>
 
+{% if session_data %}
+<!-- Already logged in -->
+<div class="card">
+    <h2>✅ Active Session</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Property</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Phone</strong></td>
+                <td><code>{{ session_data.phone }}</code></td>
+            </tr>
+            <tr>
+                <td><strong>User ID</strong></td>
+                <td><code>{{ session_data.user_id }}</code></td>
+            </tr>
+            <tr>
+                <td><strong>Name</strong></td>
+                <td>{{ session_data.first_name }} {{ session_data.last_name or '' }}</td>
+            </tr>
+            {% if session_data.username %}
+            <tr>
+                <td><strong>Username</strong></td>
+                <td>@{{ session_data.username }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td><strong>Last Updated</strong></td>
+                <td>{{ session_data.updated_at[:19] }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <form method="POST" style="margin-top: 1rem;">
+        <input type="hidden" name="action" value="logout">
+        <button type="submit" class="btn-danger" onclick="return confirm('Logout from Telegram?');">
+            🚪 Logout
+        </button>
+    </form>
+</div>
+
 <div class="alert alert-info">
-    ℹ️ <strong>Serverless Limitation:</strong> Telegram login is not available in serverless deployments because it
-    requires persistent file storage for session files.
+    ✅ <strong>Success!</strong> You're logged in to Telegram. Your session is stored securely in the database and will
+    persist across deployments.
 </div>
 
+{% else %}
+<!-- Login Form -->
 <div class="card">
-    <h2>Alternative: Use Telegram Config</h2>
-    <p>You can still configure your Telegram API credentials:</p>
+    <h2>Login to Telegram</h2>
 
-    <a href="{{ url_for('telegram_config') }}" class="btn btn-success">
-        ⚙️ Go to Telegram Configuration
-    </a>
-</div>
+    {% if login_step == 'phone' %}
+    <!-- Step 1: Phone Number -->
+    <p style="color: #64748b; margin-bottom: 1.5rem;">Enter your phone number to receive a verification code.</p>
+    <form method="POST">
+        <input type="hidden" name="action" value="send_code">
+        <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="text" id="phone" name="phone" placeholder="+1234567890" required autofocus>
+            <small style="color: #64748b;">Include country code, e.g., +1 for US</small>
+        </div>
+        <button type="submit" class="btn-success">📱 Send Code</button>
+    </form>
 
-<div class="card">
-    <h2>ℹ️ Why This Doesn't Work on Vercel</h2>
-    <p>Telegram login requires:</p>
-    <ul style="margin-left: 1.5rem; margin-top: 1rem; color: #64748b;">
-        <li>Persistent file storage for session files</li>
-        <li>Long-running processes for maintaining connection</li>
-        <li>Stateful server environment</li>
-    </ul>
-    <p style="margin-top: 1rem; color: #64748b;">
-        Vercel serverless functions are stateless and ephemeral, making Telegram sessions impossible to maintain.
+    {% elif login_step == 'code' %}
+    <!-- Step 2: Verification Code -->
+    <p style="color: #64748b; margin-bottom: 1.5rem;">
+        Enter the verification code sent to <strong>{{ phone }}</strong>
     </p>
+    <form method="POST">
+        <input type="hidden" name="action" value="verify_code">
+        <div class="form-group">
+            <label for="code">Verification Code</label>
+            <input type="text" id="code" name="code" placeholder="12345" required autofocus>
+            <small style="color: #64748b;">Check your Telegram app or SMS</small>
+        </div>
+        <button type="submit" class="btn-success">✅ Verify Code</button>
+        <a href="{{ url_for('telegram_login') }}" class="btn-secondary">🔙 Start Over</a>
+    </form>
+
+    {% elif login_step == 'password' %}
+    <!-- Step 3: 2FA Password -->
+    <p style="color: #64748b; margin-bottom: 1.5rem;">
+        Your account has 2FA enabled. Enter your cloud password.
+    </p>
+    <form method="POST">
+        <input type="hidden" name="action" value="verify_password">
+        <div class="form-group">
+            <label for="password">2FA Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required autofocus>
+            <small style="color: #64748b;">This is your Telegram cloud password</small>
+        </div>
+        <button type="submit" class="btn-success">🔐 Verify Password</button>
+        <a href="{{ url_for('telegram_login') }}" class="btn-secondary">🔙 Start Over</a>
+    </form>
+    {% endif %}
 </div>
 
 <div class="card">
-    <h2>🔧 Recommended Setup</h2>
-    <p>For full Telegram functionality including sessions:</p>
-    <ol style="margin-left: 1.5rem; margin-top: 1rem;">
-        <li>Deploy the bot to a VPS or container platform (Render, Railway, Heroku)</li>
-        <li>Use persistent storage for session files</li>
-        <li>Keep the admin panel on Vercel for monitoring</li>
-    </ol>
+    <h2>ℹ️ How This Works</h2>
+    <ul style="margin-left: 1.5rem; margin-top: 1rem; color: #64748b;">
+        <li>Your session is stored as a <strong>StringSession</strong> in the database</li>
+        <li>No files are created - perfect for serverless!</li>
+        <li>Session persists across deployments</li>
+        <li>Fully secure encrypted connection to Telegram</li>
+    </ul>
 </div>
+
+<div class="alert alert-warning">
+    🔒 <strong>Security:</strong> Your session data is encrypted and stored securely. Never share your login code or
+    password with anyone.
+</div>
+{% endif %}
 {% endblock %}
