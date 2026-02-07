@@ -7,12 +7,15 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "escrow_bot_secret_key_change_this")
-app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(__file__), 'uploads')
+app.config['UPLOAD_FOLDER'] = '/tmp/uploads'  # Use /tmp for serverless
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max
 ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'png', 'jpg', 'jpeg'}
 
-# Create uploads directory
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# Create uploads directory (safe for serverless)
+try:
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+except:
+    pass  # Ignore errors in read-only filesystem
 
 @app.route('/health')
 def health():
