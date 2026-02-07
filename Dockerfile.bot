@@ -16,7 +16,7 @@ RUN mkdir -p /app/sessions
 
 # Health check endpoint
 # Koyeb uses PORT environment variable, defaults to 8000/8080
-EXPOSE 8080
+EXPOSE 8000
 
 # Run bot
 CMD ["python", "bot.py"]

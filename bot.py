@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 async def health_check_server():
     """Lightweight HTTP server for Koyeb health checks"""
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", 8000))
     
     async def handle_health(reader, writer):
         # Read the request just to clear it
@@ -58,6 +58,11 @@ async def health_check_server():
             await server.serve_forever()
     except Exception as e:
         logger.error(f"❌ Could not start health check server: {e}")
+
+async def post_init(application):
+    """Start tasks after bot initialization"""
+    asyncio.create_task(health_check_server())
+    logger.info("✅ Health check task scheduled")
 
 def get_group_keyboard():
     """Get inline keyboard for group messages"""
@@ -901,7 +906,7 @@ def main():
     database.init_db()
     
     # Create application
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app = ApplicationBuilder().token(BOT_TOKEN).post_init(post_init).build()
     
     # Add handlers
     app.add_handler(CommandHandler("start", start))
@@ -942,19 +947,6 @@ def main():
     # Chat member updates (for admin join detection)
     app.add_handler(ChatMemberHandler(track_member_updates, ChatMemberHandler.CHAT_MEMBER))
     
-    # Start health check server in background
-    try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            asyncio.create_task(health_check_server())
-        else:
-            # If no loop is running, run_polling will handle it
-            # We can't easily start a task before run_polling if loop isn't running
-            # However, run_polling runs everything in its own internal loop
-            pass
-    except:
-        pass
-
     # Start bot
     logger.info("Bot started!")
     app.run_polling()
