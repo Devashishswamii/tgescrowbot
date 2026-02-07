@@ -1,6 +1,8 @@
 import os
 from datetime import datetime
 
+# Database module v1.1 - All functions present
+
 # Supabase configuration
 SUPABASE_URL = os.getenv("SUPABASE_URL", "")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
