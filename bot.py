@@ -196,6 +196,23 @@ async def menu_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ADDRESS COMMANDS
 # ====================
 
+def get_explorer_link(network, address):
+    """Generate blockchain explorer link"""
+    net = network.upper()
+    if 'BEP20' in net or 'BSC' in net:
+        return f"https://bscscan.com/address/{address}"
+    elif 'TRC20' in net or 'TRX' in net:
+        return f"https://tronscan.org/#/address/{address}"
+    elif 'ERC20' in net or 'ETH' in net:
+        return f"https://etherscan.io/address/{address}"
+    elif 'BTC' in net or 'BITCOIN' in net:
+        return f"https://www.blockchain.com/explorer/addresses/btc/{address}"
+    elif 'LTC' in net or 'LITECOIN' in net:
+        return f"https://blockchair.com/litecoin/address/{address}"
+    elif 'TON' in net:
+        return f"https://tonviewer.com/{address}"
+    return "https://blockchain.com"
+
 @handle_errors
 async def seller_address_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /seller ADDRESS command"""
