@@ -17,7 +17,6 @@ import database
 import validators
 import user_client
 import asyncio
-from bot_error_wrapper import handle_errors, safe_call
 
 # Logging setup
 logging.basicConfig(
