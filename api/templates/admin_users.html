@@ -12,36 +12,38 @@
 
     <h2>All Users ({{ users|length }})</h2>
 
-    <table id="usersTable">
-        <thead>
-            <tr>
-                <th>User ID</th>
-                <th>Username</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Started At</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% if users %}
-            {% for user in users %}
-            <tr>
-                <td>{{ user[0] }}</td>
-                <td>@{{ user[1] or 'N/A' }}</td>
-                <td>{{ user[2] or 'N/A' }}</td>
-                <td>{{ user[3] or 'N/A' }}</td>
-                <td>{{ user[4] }}</td>
-            </tr>
-            {% endfor %}
-            {% else %}
-            <tr>
-                <td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">
-                    No users found. Users will appear here when they start the bot.
-                </td>
-            </tr>
-            {% endif %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table id="usersTable" style="white-space: nowrap;">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Username</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Started At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if users %}
+                {% for user in users %}
+                <tr>
+                    <td>{{ user[0] }}</td>
+                    <td>@{{ user[1] or 'N/A' }}</td>
+                    <td>{{ user[2] or 'N/A' }}</td>
+                    <td>{{ user[3] or 'N/A' }}</td>
+                    <td>{{ user[4] }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: #64748b;">
+                        No users found. Users will appear here when they start the bot.
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
