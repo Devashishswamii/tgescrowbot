@@ -267,8 +267,20 @@ def telegram_logout():
 @login_required
 def telegram_login():
     """Telegram login page with working authentication"""
-    import asyncio
-    from telegram_auth import TelegramAuth
+    try:
+        import asyncio
+        import sys
+        import os
+        
+        # Add current directory to path for imports
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        if current_dir not in sys.path:
+            sys.path.insert(0, current_dir)
+        
+        from telegram_auth import TelegramAuth
+    except ImportError as e:
+        flash(f'Telegram authentication module not available: {str(e)}', 'danger')
+        return render_template('telegram_login.html', session_data=None, login_step='phone', phone=None)
     
     # Check for existing session
     session_data = database.get_telegram_session()
