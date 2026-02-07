@@ -284,6 +284,9 @@ def telegram_login():
     
     # Check for existing session
     session_data = database.get_telegram_session()
+    print(f"🔍 Checking for Telegram session... Found: {session_data is not None}")
+    if session_data:
+        print(f"✅ Session exists for User ID: {session_data.get('user_id')}, Phone: {session_data.get('phone')}")
     
     if request.method == 'POST':
         action = request.form.get('action')
@@ -338,6 +341,7 @@ def telegram_login():
                 
                 if result['success']:
                     # Save to database
+                    print(f"💾 Attempting to save session to database...")
                     save_result = database.save_telegram_session(
                         result['session_string'],
                         phone,
@@ -346,7 +350,7 @@ def telegram_login():
                     
                     if save_result:
                         user_id = result['user_data']['id']
-                        flash(f'🎉 Success! Logged in as User ID: {user_id}', 'success')
+                        flash(f'🎉 SUCCESS! Logged in as User ID: {user_id}', 'success')
                         print(f"✅ Telegram login successful for User ID: {user_id}")
                     else:
                         flash('⚠️ Login successful but failed to save session. Contact admin.', 'warning')
@@ -368,6 +372,7 @@ def telegram_login():
                     flash(result.get('error', 'Invalid code'), 'danger')
             except Exception as e:
                 flash(f"Error: {str(e)}", 'danger')
+                print(f"❌ Error during verify_code: {e}")
             
             return redirect(url_for('telegram_login'))
         
@@ -409,8 +414,10 @@ def telegram_login():
                 flash('Logged out from Telegram', 'success')
             return redirect(url_for('telegram_login'))
     
-    # GET request - show login form
+    # GET request - show login form or session details
     login_step = session.get('tg_step', 'phone')
+    
+    print(f"📄 Rendering template with session_data: {session_data is not None}, login_step: {login_step}")
     
     return render_template('telegram_login.html',
                          session_data=session_data,
