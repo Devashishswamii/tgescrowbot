@@ -338,12 +338,19 @@ def telegram_login():
                 
                 if result['success']:
                     # Save to database
-                    database.save_telegram_session(
+                    save_result = database.save_telegram_session(
                         result['session_string'],
                         phone,
                         result['user_data']
                     )
-                    flash('🎉 Success! Logged in to Telegram!', 'success')
+                    
+                    if save_result:
+                        user_id = result['user_data']['id']
+                        flash(f'🎉 Success! Logged in as User ID: {user_id}', 'success')
+                        print(f"✅ Telegram login successful for User ID: {user_id}")
+                    else:
+                        flash('⚠️ Login successful but failed to save session. Contact admin.', 'warning')
+                    
                     # Clear all session data
                     session.pop('tg_step', None)
                     session.pop('tg_phone', None)
