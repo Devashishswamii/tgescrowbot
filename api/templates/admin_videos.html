@@ -21,24 +21,26 @@
     <h2>Uploaded Files ({{ files|length }})</h2>
 
     {% if files %}
-    <table>
-        <thead>
-            <tr>
-                <th>Filename</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for file in files %}
-            <tr>
-                <td>{{ file }}</td>
-                <td>
-                    <a href="/static/uploads/{{ file }}" class="btn btn-secondary" target="_blank">📥 Download</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table style="white-space: nowrap;">
+            <thead>
+                <tr>
+                    <th>Filename</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td>{{ file }}</td>
+                    <td>
+                        <a href="/static/uploads/{{ file }}" class="btn btn-secondary" target="_blank">📥 Download</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
     <p style="text-align: center; padding: 2rem; color: #64748b;">
         No files uploaded yet. Upload your first video above!

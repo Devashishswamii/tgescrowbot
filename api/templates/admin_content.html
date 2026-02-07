@@ -37,24 +37,27 @@
 {% if contents %}
 <div class="card">
     <h2>Current Content</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Key</th>
-                <th>Content</th>
-                <th>Last Updated</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for content in contents %}
-            <tr>
-                <td><code>{{ content[0] }}</code></td>
-                <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis;">{{ content[1][:100] }}...</td>
-                <td>{{ content[2] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table style="white-space: nowrap;">
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Content</th>
+                    <th>Last Updated</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for content in contents %}
+                <tr>
+                    <td><code>{{ content[0] }}</code></td>
+                    <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis;">{{ content[1][:100] }}...
+                    </td>
+                    <td>{{ content[2] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endif %}
 {% endblock %}
