@@ -9,12 +9,45 @@
 
 ## 🔧 STEP 1: Create Database Tables in Supabase
 
+### A. Open Supabase SQL Editor
 1. Go to your Supabase dashboard: https://odcytmpqzikvysukmqwr.supabase.co
 2. Click **SQL Editor** in the left sidebar
-3. Click **New Query**
-4. Copy and paste the entire contents of `supabase_crypto_addresses.sql` file
-5. Click **Run** to create the tables
-6. You should see "Success" message
+3. Click **+ New Query**
+
+### B. Run Complete Schema
+1. Open the file: `supabase_complete_schema.sql`
+2. **Copy the ENTIRE file** (all ~200 lines)
+3. **Paste** into Supabase SQL Editor
+4. Click **Run** (or press Ctrl+Enter)
+5. Wait for "Success. No rows returned" message
+
+### C. Verify Tables Created
+Run this query to check:
+```sql
+SELECT table_name FROM information_schema.tables 
+WHERE table_schema = 'public' 
+ORDER BY table_name;
+```
+
+You should see 8 tables:
+- ✅ `bot_users`
+- ✅ `config`
+- ✅ `crypto_addresses`
+- ✅ `deals`
+- ✅ `editable_content`
+- ✅ `media_files`
+- ✅ `statistics`
+- ✅ `users`
+
+### D. Check Default Data
+```sql
+SELECT * FROM config;
+SELECT * FROM statistics;
+```
+
+You should see default admin password and statistics.
+
+**✅ DATABASE SETUP COMPLETE!** The bot is now fully configured to use Supabase.
 
 ---
 
