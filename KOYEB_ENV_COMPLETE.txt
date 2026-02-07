@@ -1,0 +1,57 @@
+# ========================================
+# COMPLETE KOYEB ENVIRONMENT VARIABLES
+# All credentials filled in - Ready to use!
+# ========================================
+
+BOT_TOKEN=8470449689:AAEHH4KZJi2TCqcWOxpVO0MtHDcTukaEN0k
+API_ID=34829504
+API_HASH=79800fb3038d1085079ec2c9e6936ce7
+PHONE_NUMBER=+916350117452
+SUPABASE_URL=https://odcytmpqzikvysukmqwr.supabase.co
+SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kY3l0bXBxemlrdnlzdWttcXdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODYzMzQsImV4cCI6MjA4NTk2MjMzNH0.twm0Q5vkCsMnjIYQjXa83tqfx2EACdIp4_i-NxUcZ0s
+
+# === OPTIONAL (but recommended) ===
+# Get your Telegram User ID from @userinfobot and add below:
+ADMIN_USER_ID=your_telegram_user_id_here
+
+# After deploying admin panel to Vercel, add the URL below:
+ADMIN_PANEL_URL=https://your-admin-panel.vercel.app
+
+
+# ========================================
+# HOW TO ADD TO KOYEB:
+# ========================================
+#
+# Option 1: Via Koyeb Dashboard (Recommended)
+# --------------------------------------------
+# 1. Go to: https://app.koyeb.com/
+# 2. Select your app → Settings → Environment Variables
+# 3. Click "Add Variable" for EACH line above
+# 4. Copy Name and Value exactly as shown
+# 5. Click "Save Changes"
+# 6. Redeploy your app
+#
+# Option 2: Via koyeb.toml (Already configured)
+# --------------------------------------------
+# The koyeb.toml file is already set up. Just make sure
+# environment variables are added in Koyeb dashboard.
+#
+# ========================================
+# WHAT'S ALREADY FILLED:
+# ========================================
+# ✅ BOT_TOKEN - Your bot token
+# ✅ API_ID - Your Telegram API ID
+# ✅ API_HASH - Your Telegram API hash
+# ✅ PHONE_NUMBER - Your phone number
+# ✅ SUPABASE_URL - Your Supabase project URL
+# ✅ SUPABASE_KEY - Your Supabase anon key
+#
+# ⚠️ FILL THESE BEFORE DEPLOYING:
+# ========================================
+# - ADMIN_USER_ID (message @userinfobot to get your ID)
+# - ADMIN_PANEL_URL (get after deploying to Vercel)
+#
+# THESE ARE OPTIONAL - Your bot will work without them,
+# but you won't see the admin panel button in Telegram.
+#
+# ========================================

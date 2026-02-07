@@ -1,0 +1,134 @@
+{% extends "admin_dashboard.html" %}
+
+{% block title %}Telegram Configuration{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>📱 Telegram API Configuration</h2>
+    <p class="text-muted">Configure your Telegram account that will be used to create escrow groups</p>
+
+    <div class="alert alert-info">
+        <strong>ℹ️ How it works:</strong>
+        <ol>
+            <li>Enter your Telegram API credentials here</li>
+            <li>Click "Create Escrow Group" button in the bot</li>
+            <li>Bot creates group using your account</li>
+            <li>You receive the group link instantly!</li>
+        </ol>
+    </div>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5>Configure Telegram Credentials</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <div class="form-group mb-3">
+                    <label for="api_id">API ID</label>
+                    <input type="text" class="form-control" id="api_id" name="api_id" value="{{ config.api_id }}"
+                        placeholder="Get from https://my.telegram.org">
+                    <small class="form-text text-muted">Visit <a href="https://my.telegram.org"
+                            target="_blank">https://my.telegram.org</a> to get your API ID</small>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="api_hash">API Hash</label>
+                    <input type="text" class="form-control" id="api_hash" name="api_hash" value="{{ config.api_hash }}"
+                        placeholder="Your API hash from my.telegram.org">
+                    <small class="form-text text-muted">This is a long string from my.telegram.org</small>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="phone">Phone Number (with country code)</label>
+                    <input type="text" class="form-control" id="phone" name="phone" value="{{ config.phone }}"
+                        placeholder="+1234567890">
+                    <small class="form-text text-muted">Your phone number registered with Telegram (e.g.,
+                        +1234567890)</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Credentials
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header bg-success text-white">
+            <h5>✅ Current Configuration</h5>
+        </div>
+        <div class="card-body">
+            {% if config.api_id and config.api_hash and config.phone %}
+            <div class="alert alert-success">
+                <strong>✅ Configured!</strong> Your Telegram credentials are saved.
+            </div>
+            <table class="table">
+                <tr>
+                    <th>API ID:</th>
+                    <td><code>{{ config.api_id }}</code></td>
+                </tr>
+                <tr>
+                    <th>API Hash:</th>
+                    <td><code>{{ config.api_hash[:20] }}...</code></td>
+                </tr>
+                <tr>
+                    <th>Phone:</th>
+                    <td><code>{{ config.phone }}</code></td>
+                </tr>
+            </table>
+
+            <div class="alert alert-info">
+                <strong>🎯 Next Steps:</strong>
+                <ol>
+                    <li>Go to your Telegram bot</li>
+                    <li>Click "Create Escrow Group" button</li>
+                    <li>Bot will create group using these credentials</li>
+                    <li>You'll receive the group link!</li>
+                </ol>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <strong>⚠️ Not configured yet</strong>
+                <p>Please fill in your Telegram credentials above to enable group creation.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h5>📖 How to Get API Credentials</h5>
+        </div>
+        <div class="card-body">
+            <h6>Step 1: Visit my.telegram.org</h6>
+            <ol>
+                <li>Go to <a href="https://my.telegram.org" target="_blank">https://my.telegram.org</a></li>
+                <li>Enter your phone number</li>
+                <li>Enter the code sent to your Telegram app</li>
+            </ol>
+
+            <h6>Step 2: Create an App</h6>
+            <ol>
+                <li>Click "API development tools"</li>
+                <li>Fill in app title (e.g., "Escrow Bot")</li>
+                <li>Fill in short name (e.g., "escrowbot")</li>
+                <li>Click "Create application"</li>
+            </ol>
+
+            <h6>Step 3: Copy Credentials</h6>
+            <ol>
+                <li>Copy your <strong>API ID</strong> (numbers)</li>
+                <li>Copy your <strong>API Hash</strong> (long string)</li>
+                <li>Paste them in the form above</li>
+                <li>Add your phone number with country code</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
