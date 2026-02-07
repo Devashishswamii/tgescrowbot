@@ -3,20 +3,24 @@ from flask import Flask, request, render_template, redirect, url_for, session, f
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
-# Import database with error handling
+# Import database with error handling - use relative import to ensure we get the right one
 try:
-    import database
+    from . import database
     DB_AVAILABLE = True
-except Exception as e:
-    print(f"Database import error: {e}")
-    DB_AVAILABLE = False
-    class database:
-        @staticmethod
-        def get_statistics():
-            return {'total_deals': 0, 'disputes_resolved': 0}
-        @staticmethod
-        def get_all_bot_users():
-            return []
+except:
+    try:
+        import database
+        DB_AVAILABLE = True
+    except Exception as e:
+        print(f"Database import error: {e}")
+        DB_AVAILABLE = False
+        class database:
+            @staticmethod
+            def get_statistics():
+                return {'total_deals': 0, 'disputes_resolved': 0}
+            @staticmethod
+            def get_all_bot_users():
+                return []
         @staticmethod
         def get_config(key):
             return None
