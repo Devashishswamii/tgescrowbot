@@ -836,7 +836,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             
             # For demo/testing, we'll create a group with the user as both buyer and seller
             buyer_id = user_id
-            seller_id = user_id  # Same user for testing
+            seller_id = 0  # Use 0 for seller (to avoid constraint error if buyer==seller is not allowed)
             bot_username = context.bot.username
             
             # Call Telethon microservice to create group
@@ -860,20 +860,10 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             # Store in database
             database.create_deal(deal_id, buyer_id, seller_id, group_id)
             
-            # Send welcome message to the group
-            stats = database.get_statistics()
-            welcome_text = messages.GROUP_WELCOME_TEXT.format(
-                total_deals=stats.get('total_deals', 5542),
-                disputes_resolved=stats.get('disputes_resolved', 158)
-            )
-            keyboard = get_group_keyboard()
+            # NOTE: Welcome message is now sent automatically by track_member_updates
+            # when the bot joins the group. We don't need to send it here.
             
-            await context.bot.send_message(
-                chat_id=group_id,
-                text=welcome_text,
-                reply_markup=keyboard,
-                parse_mode='HTML'
-            )
+            # Send success message with invite link
             
             # Send success message with invite link
             await creating_msg.edit_text(
