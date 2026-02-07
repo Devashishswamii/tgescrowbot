@@ -10,6 +10,8 @@
 !user_client.py
 !telethon_service.py
 !bot_error_wrapper.py
+!create_command.py
+!telegram_group_manager.py
 
 # Allow requirement files
 !requirements.txt
