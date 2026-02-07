@@ -73,6 +73,9 @@ def set_config(key, value):
     except Exception as e:
         print(f"Error setting config: {e}")
 
+# Alias for compatibility
+update_config = set_config
+
 @safe_call
 def get_config(key):
     """Get configuration value"""
