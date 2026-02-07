@@ -156,6 +156,9 @@ def get_all_users():
         print(f"Error getting users: {e}")
         return []
 
+# Alias for compatibility
+get_all_bot_users = get_all_users
+
 @safe_call
 def save_media_file(file_type, file_path, description=""):
     """Save media file info"""
