@@ -54,181 +54,127 @@ def logout():
 @login_required
 def dashboard():
     stats = database.get_statistics()
-    users = database.get_all_users()
-    users_count = len(users)
-    recent_users = users[:5] if users else []
-    
-    return render_template('admin_dashboard.html', 
-                         stats=stats, 
-                         users_count=users_count,
-                         recent_users=recent_users)
+    users = database.get_all_bot_users()
+    return render_template('admin_dashboard.html', stats=stats, users=users)
 
 @app.route('/users')
 @login_required
 def users():
-    all_users = database.get_all_users()
+    all_users = database.get_all_bot_users()
     return render_template('admin_users.html', users=all_users)
 
 @app.route('/videos', methods=['GET', 'POST'])
 @login_required
 def videos():
     if request.method == 'POST':
-        file_type = request.form.get('file_type')
-        description = request.form.get('description', '')
-        
-        if 'file' not in request.files:
+        if 'video' not in request.files:
             flash('No file selected!', 'danger')
-            return redirect(url_for('videos'))
+            return redirect(request.url)
         
-        file = request.files['file']
+        file = request.files['video']
         if file.filename == '':
             flash('No file selected!', 'danger')
-            return redirect(url_for('videos'))
-        
+            return redirect(request.url)
+            
         if file and allowed_file(file.filename):
-            filename = secure_filename(f"{file_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{file.filename.rsplit('.', 1)[1]}")
+            filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
-            
-            database.save_media_file(file_type, filepath, description)
-            flash(f'Video uploaded successfully: {filename}', 'success')
+            flash(f'Video uploaded: {filename}', 'success')
         else:
             flash('Invalid file type!', 'danger')
-        
-        return redirect(url_for('videos'))
-    
-    media_files = database.get_all_media()
-    return render_template('admin_videos.html', media_files=media_files)
+            
+    uploaded_files = os.listdir(app.config['UPLOAD_FOLDER']) if os.path.exists(app.config['UPLOAD_FOLDER']) else []
+    return render_template('admin_videos.html', files=uploaded_files)
 
 @app.route('/content', methods=['GET', 'POST'])
 @login_required
 def content():
     if request.method == 'POST':
-        content_key = request.form.get('content_key')
-        content_value = request.form.get('content_value')
+        key = request.form.get('key')
+        content = request.form.get('content')
         
-        database.update_content(content_key, content_value)
-        flash(f'{content_key} updated successfully!', 'success')
-        return redirect(url_for('content'))
-    
-    # Load current content
-    instructions = database.get_content('instructions', '')
-    terms = database.get_content('terms', '')
-    welcome = database.get_content('welcome', '')
-    
-    return render_template('admin_content.html',
-                         instructions=instructions,
-                         terms=terms,
-                         welcome=welcome)
+        if database.update_editable_content(key, content):
+            flash('Content updated successfully!', 'success')
+        else:
+            flash('Error updating content!', 'danger')
+            
+    all_content = database.get_all_editable_content()
+    return render_template('admin_content.html', contents=all_content)
 
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
     if request.method == 'POST':
-        action = request.form.get('action')
+        new_password = request.form.get('new_password')
         
-        if action == 'update_admin':
-            admin_username = request.form.get('admin_username')
-            database.set_config('admin_username', admin_username)
-            flash('Admin username updated!', 'success')
-        
-        elif action == 'update_addresses':
-            database.set_config('bot_address_btc', request.form.get('btc_address', ''))
-            database.set_config('bot_address_ltc', request.form.get('ltc_address', ''))
-            database.set_config('bot_address_usdt_trc20', request.form.get('usdt_trc20_address', ''))
-            database.set_config('bot_address_usdt_bep20', request.form.get('usdt_bep20_address', ''))
-            database.set_config('bot_address_ton', request.form.get('ton_address', ''))
-            flash('Crypto addresses updated!', 'success')
-        
-        elif action == 'update_password':
-            new_password = request.form.get('new_password')
-            database.set_config('admin_password', new_password)
-            flash('Password updated!', 'success')
-        
-        elif action == 'update_stats':
-            database.increment_stat('total_deals')  # This would need custom implementation
-            flash('Statistics updated!', 'success')
-        
-        return redirect(url_for('settings'))
-    
-    # Load current settings
-    admin_username = database.get_config('admin_username') or 'MiddleCryptoSupport'
-    stats = database.get_statistics()
-    
-    addresses = {
-        'btc': database.get_config('bot_address_btc') or '',
-        'ltc': database.get_config('bot_address_ltc') or '',
-        'usdt_trc20': database.get_config('bot_address_usdt_trc20') or '',
-        'usdt_bep20': database.get_config('bot_address_usdt_bep20') or '',
-        'ton': database.get_config('bot_address_ton') or ''
+        if new_password:
+            if database.update_config('admin_password', new_password):
+                flash('Password updated successfully!', 'success')
+            else:
+                flash('Error updating password!', 'danger')
+                
+    config = {
+        'admin_username': database.get_config('admin_username'),
+        'admin_password': database.get_config('admin_password')
     }
-    
-    return render_template('admin_settings.html',
-                         admin_username=admin_username,
-                         stats=stats,
-                         addresses=addresses)
+    return render_template('admin_settings.html', config=config)
 
 @app.route('/session-info')
 @login_required
 def session_info():
     """Display Telegram session information"""
-    try:
-        from telethon import TelegramClient
-        import asyncio
-        
-        # Read session file
-        session_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'user_session.session')
-        
-        if not os.path.exists(session_path):
-            flash('No Telegram session found!', 'warning')
-            return render_template('session_manager.html', session_data=None)
-        
-        # Get session info using Telethon
-        async def get_session_data():
-            client = TelegramClient('user_session', 
-                                   int(os.getenv('API_ID', '0')), 
-                                   os.getenv('API_HASH', ''))
-            try:
-                await client.connect()
-                if await client.is_user_authorized():
-                    me = await client.get_me()
-                    return {
-                        'phone': me.phone,
-                        'user_id': me.id,
-                        'first_name': me.first_name,
-                        'last_name': me.last_name,
-                        'username': me.username,
-                        'connected': True
-                    }
-                else:
-                    return {'connected': False}
-            finally:
-                await client.disconnect()
-        
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        session_data = loop.run_until_complete(get_session_data())
-        loop.close()
-        
-        return render_template('session_manager.html', session_data=session_data)
+    import sys
+    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
     
-    except Exception as e:
-        flash(f'Error reading session: {e}', 'danger')
-        return render_template('session_manager.html', session_data=None)
+    session_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'user_session.session')
+    session_exists = os.path.exists(session_file)
+    
+    session_data = {
+        'exists': session_exists,
+        'phone': None,
+        'user_id': None,
+        'name': None,
+        'username': None
+    }
+    
+    if session_exists:
+        try:
+            from telethon.sync import TelegramClient
+            from config import API_ID, API_HASH
+            
+            client = TelegramClient('user_session', API_ID, API_HASH)
+            client.connect()
+            
+            if client.is_user_authorized():
+                me = client.get_me()
+                session_data.update({
+                    'phone': me.phone,
+                    'user_id': me.id,
+                    'name': f"{me.first_name or ''} {me.last_name or ''}".strip(),
+                    'username': me.username or 'N/A'
+                })
+            
+            client.disconnect()
+        except Exception as e:
+            flash(f'Error reading session: {e}', 'warning')
+    
+    return render_template('session_manager.html', session_data=session_data)
 
 @app.route('/telegram-logout', methods=['POST'])
 @login_required
 def telegram_logout():
     """Logout from Telegram session"""
+    session_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'user_session.session')
+    
     try:
-        session_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'user_session.session')
-        if os.path.exists(session_path):
-            os.remove(session_path)
-            flash('Telegram session cleared! Please restart services and re-authenticate.', 'success')
+        if os.path.exists(session_file):
+            os.remove(session_file)
+            flash('Telegram session cleared! Please re-authenticate with auth_telethon.py', 'success')
         else:
             flash('No session file found!', 'warning')
     except Exception as e:
-        flash(f'Error removing session: {e}', 'danger')
+        flash(f'Error clearing session: {e}', 'danger')
     
     return redirect(url_for('session_info'))
 
@@ -246,7 +192,7 @@ def crypto_addresses():
             label = request.form.get('label', '')
             
             if database.add_crypto_address(currency, address, network, label):
-                flash(f'{currency} address added successfully!', 'success')
+                flash('Address added successfully!', 'success')
             else:
                 flash('Error adding address!', 'danger')
         
@@ -278,12 +224,13 @@ def crypto_addresses():
 @app.route('/webhook-manager', methods=['GET', 'POST'])
 @login_required
 def webhook_manager():
-    \"\"\"Manage bot webhook - fix webhook issues\"\"\"
+    """Manage bot webhook - fix webhook issues"""
     import requests
     from dotenv import load_dotenv
     
     load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
     bot_token = os.getenv('BOT_TOKEN')
+    base_url = 'https://api.telegram.org/bot' + bot_token
     
     if request.method == 'POST':
         action = request.form.get('action')
@@ -291,51 +238,55 @@ def webhook_manager():
         if action == 'delete':
             # Delete webhook
             try:
-                response = requests.post(f'https://api.telegram.org/bot{bot_token}/deleteWebhook')
-                if response.json().get('ok'):
+                response = requests.post(base_url + '/deleteWebhook')
+                result = response.json()
+                if result.get('ok'):
                     flash('Webhook deleted successfully!', 'success')
                 else:
-                    flash(f'Error: {response.json().get(\"description\")}', 'danger')
+                    error_desc = result.get('description', 'Unknown error')
+                    flash('Error: ' + error_desc, 'danger')
             except Exception as e:
-                flash(f'Error deleting webhook: {e}', 'danger')
+                flash('Error deleting webhook: ' + str(e), 'danger')
         
         elif action == 'set':
             # Set new webhook
             webhook_url = request.form.get('webhook_url')
             if webhook_url:
                 try:
-                    response = requests.post(
-                        f'https://api.telegram.org/bot{bot_token}/setWebhook',
-                        json={'url': webhook_url}
-                    )
-                    if response.json().get('ok'):
-                        flash(f'Webhook set to: {webhook_url}', 'success')
+                    response = requests.post(base_url + '/setWebhook', json={'url': webhook_url})
+                    result = response.json()
+                    if result.get('ok'):
+                        flash('Webhook set to: ' + webhook_url, 'success')
                     else:
-                        flash(f'Error: {response.json().get(\"description\")}', 'danger')
+                        error_desc = result.get('description', 'Unknown error')
+                        flash('Error: ' + error_desc, 'danger')
                 except Exception as e:
-                    flash(f'Error setting webhook: {e}', 'danger')
+                    flash('Error setting webhook: ' + str(e), 'danger')
         
         elif action == 'fix':
             # Fix webhook: Delete old and set to polling mode
             try:
-                response = requests.post(f'https://api.telegram.org/bot{bot_token}/deleteWebhook')
-                if response.json().get('ok'):
+                response = requests.post(base_url + '/deleteWebhook')
+                result = response.json()
+                if result.get('ok'):
                     flash('Webhook deleted! Bot is now in polling mode. Please restart bot.', 'success')
                 else:
-                    flash(f'Error: {response.json().get(\"description\")}', 'danger')
+                    error_desc = result.get('description', 'Unknown error')
+                    flash('Error: ' + error_desc, 'danger')
             except Exception as e:
-                flash(f'Error fixing webhook: {e}', 'danger')
+                flash('Error fixing webhook: ' + str(e), 'danger')
         
         return redirect(url_for('webhook_manager'))
     
     # Get current webhook info
     webhook_info = {}
     try:
-        response = requests.get(f'https://api.telegram.org/bot{bot_token}/getWebhookInfo')
-        if response.json().get('ok'):
-            webhook_info = response.json().get('result', {})
+        response = requests.get(base_url + '/getWebhookInfo')
+        result = response.json()
+        if result.get('ok'):
+            webhook_info = result.get('result', {})
     except Exception as e:
-        flash(f'Error getting webhook info: {e}', 'warning')
+        flash('Error getting webhook info: ' + str(e), 'warning')
     
     return render_template('webhook_manager.html', webhook_info=webhook_info)
 
