@@ -198,11 +198,22 @@ async def create_escrow_group(deal_id, bot_username=None):
         
         logger.info(f"🔗 Invite link: {invite_link}")
         
+        
         await client.disconnect()
+        
+        # Normalize Group ID for Bot API (Supergroups need -100 prefix)
+        # Telethon returns positive ID for channels/supergroups (e.g. 12345)
+        # Bot API sees them as -10012345
+        final_group_id = group_id
+        if str(group_id).startswith('-100'):
+            pass # Already good
+        elif group_id > 0:
+            final_group_id = int(f"-100{group_id}")
+            logger.info(f"Converted Telethon ID {group_id} to Bot API ID {final_group_id}")
         
         return {
             'success': True,
-            'group_id': group_id,
+            'group_id': final_group_id,
             'invite_link': invite_link
         }
         
