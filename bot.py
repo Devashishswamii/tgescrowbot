@@ -346,9 +346,12 @@ async def set_escrow_address_command(update: Update, context: ContextTypes.DEFAU
 
 @handle_errors
 async def show_bot_escrow_addresses_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show all configured bot escrow wallets (Admin only)"""
+    """Show all configured bot escrow wallets (Admin only in Private, Public in Groups)"""
     user_id = update.effective_user.id
-    if user_id not in ADMIN_USER_IDS:
+    chat_type = update.effective_chat.type
+    
+    # In PRIVATE chat, restrict to Admin
+    if chat_type == 'private' and user_id not in ADMIN_USER_IDS:
         return
 
     networks = [
