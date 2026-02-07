@@ -246,3 +246,82 @@ def get_telegram_admin_session():
     except Exception as e:
         print(f"Error getting telegram admin session: {e}")
         return None
+
+# -------------------------------------------------------------------------
+# Merged features from api/database.py
+# -------------------------------------------------------------------------
+
+@safe_call
+def update_editable_content(key, content):
+    """Update editable content"""
+    try:
+        supabase.table('editable_content').upsert({
+            'key': key,
+            'content': content,
+            'updated_at': datetime.now().isoformat()
+        }).execute()
+        return True
+    except Exception as e:
+        print(f"Error updating editable content: {e}")
+        return False
+
+@safe_call
+def get_all_editable_content():
+    """Get all editable content"""
+    try:
+        result = supabase.table('editable_content').select('*').order('updated_at', desc=True).execute()
+        return [(c['key'], c['content'], c['updated_at']) for c in result.data]
+    except Exception as e:
+        print(f"Error getting editable content: {e}")
+        return []
+
+@safe_call
+def get_crypto_addresses():
+    """Get all crypto addresses"""
+    try:
+        result = supabase.table('crypto_addresses').select('*').order('created_at', desc=True).execute()
+        return [(a['id'], a['currency'], a['address'], a['network'], a['label'], a['created_at']) 
+                for a in result.data]
+    except Exception as e:
+        print(f"Error getting crypto addresses: {e}")
+        return []
+
+@safe_call
+def add_crypto_address(currency, address, network='', label=''):
+    """Add a new crypto address"""
+    try:
+        supabase.table('crypto_addresses').insert({
+            'currency': currency,
+            'address': address,
+            'network': network,
+            'label': label
+        }).execute()
+        return True
+    except Exception as e:
+        print(f"Error adding crypto address: {e}")
+        return False
+
+@safe_call
+def delete_crypto_address(address_id):
+    """Delete a crypto address"""
+    try:
+        supabase.table('crypto_addresses').delete().eq('id', address_id).execute()
+        return True
+    except Exception as e:
+        print(f"Error deleting crypto address: {e}")
+        return False
+
+@safe_call
+def update_crypto_address(address_id, currency, address, network='', label=''):
+    """Update a crypto address"""
+    try:
+        supabase.table('crypto_addresses').update({
+            'currency': currency,
+            'address': address,
+            'network': network,
+            'label': label
+        }).eq('id', address_id).execute()
+        return True
+    except Exception as e:
+        print(f"Error updating crypto address: {e}")
+        return False
