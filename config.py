@@ -17,7 +17,12 @@ PHONE_NUMBER = os.getenv("PHONE_NUMBER", "YOUR_PHONE_NUMBER_HERE")  # e.g., "+12
 # Admin Configuration
 ADMIN_USERNAMES = [os.getenv("ADMIN_USERNAMES", "@MiddleCryptoSupport")]  # Admin User IDs (numeric Telegram IDs, you need to populate this)
 ADMIN_USER_IDS = []  # Example: ["123456789"]
-ADMIN_USER_ID = int(os.getenv("ADMIN_USER_ID", "0"))  # Your Telegram user ID (get from @userinfobot)
+
+# Admin User ID - with error handling for invalid values
+try:
+    ADMIN_USER_ID = int(os.getenv("ADMIN_USER_ID", "0"))  # Your Telegram user ID (get from @userinfobot)
+except (ValueError, TypeError):
+    ADMIN_USER_ID = 0  # Default to 0 if invalid
 
 # Admin Panel URL (for Telegram Web App)
 ADMIN_PANEL_URL = os.getenv("ADMIN_PANEL_URL", "http://localhost:5000")  # Vercel URL in production
