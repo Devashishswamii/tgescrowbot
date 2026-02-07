@@ -122,41 +122,15 @@ def settings():
 @login_required
 def session_info():
     """Display Telegram session information"""
-    import sys
-    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-    
-    session_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'user_session.session')
-    session_exists = os.path.exists(session_file)
-    
+    # Session management not available in serverless environment
     session_data = {
-        'exists': session_exists,
+        'exists': False,
         'phone': None,
         'user_id': None,
         'name': None,
         'username': None
     }
-    
-    if session_exists:
-        try:
-            from telethon.sync import TelegramClient
-            from config import API_ID, API_HASH
-            
-            client = TelegramClient('user_session', API_ID, API_HASH)
-            client.connect()
-            
-            if client.is_user_authorized():
-                me = client.get_me()
-                session_data.update({
-                    'phone': me.phone,
-                    'user_id': me.id,
-                    'name': f"{me.first_name or ''} {me.last_name or ''}".strip(),
-                    'username': me.username or 'N/A'
-                })
-            
-            client.disconnect()
-        except Exception as e:
-            flash(f'Error reading session: {e}', 'warning')
-    
+    flash('Session management is not available in serverless deployment', 'info')
     return render_template('session_manager.html', session_data=session_data)
 
 @app.route('/telegram-config', methods=['GET', 'POST'])
@@ -192,17 +166,7 @@ def telegram_config():
 @login_required
 def telegram_logout():
     """Logout from Telegram session"""
-    session_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'user_session.session')
-    
-    try:
-        if os.path.exists(session_file):
-            os.remove(session_file)
-            flash('Telegram session cleared! Please re-authenticate with auth_telethon.py', 'success')
-        else:
-            flash('No session file found!', 'warning')
-    except Exception as e:
-        flash(f'Error clearing session: {e}', 'danger')
-    
+    flash('Session management is not available in serverless deployment', 'info')
     return redirect(url_for('session_info'))
 
 @app.route('/crypto-addresses', methods=['GET', 'POST'])
@@ -253,10 +217,12 @@ def crypto_addresses():
 def webhook_manager():
     """Manage bot webhook - fix webhook issues"""
     import requests
-    from dotenv import load_dotenv
     
-    load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
     bot_token = os.getenv('BOT_TOKEN')
+    if not bot_token:
+        flash('BOT_TOKEN not configured in environment variables', 'danger')
+        return render_template('webhook_manager.html', webhook_info={})
+    
     base_url = 'https://api.telegram.org/bot' + bot_token
     
     if request.method == 'POST':
