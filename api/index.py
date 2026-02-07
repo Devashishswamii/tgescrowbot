@@ -29,6 +29,18 @@ except Exception as e:
         @staticmethod
         def update_editable_content(key, content):
             return False
+        @staticmethod
+        def get_crypto_addresses():
+            return []
+        @staticmethod
+        def add_crypto_address(currency, address, network='', label=''):
+            return False
+        @staticmethod
+        def delete_crypto_address(address_id):
+            return False
+        @staticmethod
+        def update_crypto_address(address_id, currency, address, network='', label=''):
+            return False
 
 # MONKEY PATCH: Ensure update_config exists regardless of which database.py is loaded
 if DB_AVAILABLE and not hasattr(database, 'update_config'):
@@ -44,19 +56,6 @@ if DB_AVAILABLE and not hasattr(database, 'update_config'):
             print(f"Error in monkey-patched update_config: {e}")
         return False
     database.update_config = _update_config
-            return False
-        @staticmethod
-        def get_crypto_addresses():
-            return []
-        @staticmethod
-        def add_crypto_address(currency, address, network='', label=''):
-            return False
-        @staticmethod
-        def delete_crypto_address(address_id):
-            return False
-        @staticmethod
-        def update_crypto_address(address_id, currency, address, network='', label=''):
-            return False
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "escrow_bot_secret_key_change_this_in_production")
