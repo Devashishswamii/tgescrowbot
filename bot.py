@@ -852,22 +852,26 @@ async def blockchain_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         deal = database.get_deal_by_group(group_id)
         
         if deal:
-            # deal[3] is buyer_address
-            buyer_addr = deal[3]
-            is_valid, network = validators.validate_crypto_address(buyer_addr)
-            if not network:
-                network = "Unknown"
-                
-            bot_wallet = database.get_bot_wallet_address(network)
-            if not bot_wallet:
-                 bot_wallet = "NOT_SET_CONTACT_ADMIN"
-
-            explorer_link = get_explorer_link(network, bot_wallet)
+            # Show ALL available addresses (as requested)
+            addresses = database.get_crypto_addresses()
+            
+            # Format addresses
+            addr_text = ""
+            if addresses:
+                for a in addresses:
+                    # a = (id, currency, address, network, label, created_at)
+                    currency = a[1] or "Unknown"
+                    addr = a[2]
+                    net = f" ({a[3]})" if a[3] else ""
+                    addr_text += f"\n🟢 <b>{currency}{net}:</b>\n<code>{addr}</code>\n"
+            else:
+                 # Fallback if DB empty (should not happen due to init_db)
+                 addr_text = "No addresses configured."
 
             await update.message.reply_text(
-                f"🟢 <b>ESCROW ADDRESS</b>\n\n"
-                f"<code>{bot_wallet}</code> [{network}]\n\n"
-                f"🌐 <b>Blockchain Explorer:</b>\n{explorer_link}",
+                f"<b>OFFICIAL ESCROW ADDRESSES</b>\n"
+                f"{addr_text}\n"
+                "⚠️ <b>IMPORTANT: Always verify the address before sending!</b>",
                 parse_mode='HTML',
                 disable_web_page_preview=True
             )
