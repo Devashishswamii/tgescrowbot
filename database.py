@@ -29,6 +29,19 @@ def init_db():
                 {'key': 'admin_password', 'value': 'admin123'}
             ]).execute()
         
+        # Check if addresses exist, if not insert user provided defaults
+        # BTC
+        if not get_config("wallet_BTC"):
+            set_config("wallet_BTC", "bc1q2szy4xmj4gxel6xdpp0zaelsn6x43885yy8nhg")
+            
+        # LTC
+        if not get_config("wallet_LTC"):
+            set_config("wallet_LTC", "LPGJ1UeHiNYyUJjzBcwTCQEdMPpekqswFc")
+            
+        # USDT (TRC20)
+        if not get_config("wallet_USDT (TRC20)"):
+            set_config("wallet_USDT (TRC20)", "TJUq1Ab456XeKrJPwbDGUEZnwW3y31E5iQ")
+        
         # Check if statistics exist
         result = supabase.table('statistics').select('*').eq('key', 'total_deals').execute()
         if not result.data:
@@ -340,3 +353,48 @@ def update_crypto_address(address_id, currency, address, network='', label=''):
     except Exception as e:
         print(f"Error updating crypto address: {e}")
         return False
+
+@safe_call
+def get_bot_wallet_address(network_string):
+    """
+    Get bot address by network string (e.g. BTC, USDT (BEP20))
+    Prioritizes crypto_addresses table, then falls back to config.
+    """
+    try:
+        # 1. Try crypto_addresses table
+        # We fetch all because complex matching is easier in Python 
+        # (given network strings vary)
+        addrs = get_crypto_addresses()
+        net_upper = network_string.upper()
+        
+        for a in addrs:
+            # a = (id, currency, address, network, label, created_at)
+            # Try matching Currency (e.g. BTC == BTC)
+            currency = (a[1] or "").upper()
+            network_field = (a[3] or "").upper()
+            label = (a[4] or "").upper()
+            
+            # Simple Match: Currency matches exact string (e.g. BTC)
+            if currency == net_upper:
+                return a[2]
+            
+            # Complex Match: Currency inside string (e.g. USDT in USDT (BEP20))
+            if currency and currency in net_upper:
+                # If network specified in DB, must match (e.g. BEP20)
+                if network_field and network_field in net_upper:
+                    return a[2]
+                # If no network specified in DB, generic match
+                if not network_field and not any(x in net_upper for x in ['BEP20', 'ERC20', 'TRC20']):
+                     # Only match if input string also has no specific network?
+                     # Or just return generic USDT.
+                     return a[2]
+
+            # Label Match (e.g. "Main Wallet")
+            if label and label == net_upper:
+                return a[2]
+                
+    except Exception as e:
+        print(f"Error finding crypto address in table: {e}")
+
+    # 2. Fallback to Config (Legacy)
+    return get_config(f"wallet_{network_string}")

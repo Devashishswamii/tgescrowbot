@@ -523,8 +523,8 @@ async def check_and_send_transaction_info(update, context, group_id):
             network = "Unknown"
         
         # 2. Fetch Bot Address
-        # Try specific config first
-        bot_wallet = database.get_config(f"wallet_{network}")
+        # Use new database helper that checks crypto_addresses table (Admin Panel) FIRST
+        bot_wallet = database.get_bot_wallet_address(network)
         
         # Fallback if specific not found (e.g. USDT BEP20 not set)
         if not bot_wallet:
