@@ -540,18 +540,6 @@ async def check_and_send_transaction_info(update, context, group_id):
         explorer_link = get_explorer_link(network, bot_wallet)
 
         # Construct Message (Exact Match to User Request)
-        msg = (
-            "📍 <b>TRANSACTION INFORMATION</b>\n\n"
-            "⚡️ <b>SELLER</b>\n"
-            f"<a href='tg://user?id={deal[2]}'>Seller</a>\n"
-            f"[{deal[2]}]\n\n"
-            "⚡️ <b>BUYER</b>\n"
-            f"<a href='tg://user?id={deal[1]}'>Buyer</a>\n"
-            f"[{deal[1]}]\n\n"
-            "📝 <b>TRANSACTION ID</b>\n"
-            f"<code>{deal[0]}</code>\n\n"
-            "🟢 <b>ESCROW ADDRESS:</b>\n"
-            f"<code>{bot_wallet}</code> [{network}]\n\n"
         # Construct Message (Without Blockchain Link)
         msg = (
             "📍 <b>TRANSACTION INFORMATION</b>\n\n"
