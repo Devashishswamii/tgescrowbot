@@ -29,7 +29,18 @@ def init_db():
                 {'key': 'admin_password', 'value': 'admin123'}
             ]).execute()
         
-        # Check if addresses exist, if not insert user provided defaults
+        # Check if addresses exist in crypto_addresses table (Admin Panel)
+        # If not, insert defaults
+        current_addrs = get_crypto_addresses()
+        if not current_addrs:
+             # BTC
+             add_crypto_address("BTC", "bc1q2szy4xmj4gxel6xdpp0zaelsn6x43885yy8nhg", "Bitcoin", "Main Wallet")
+             # LTC
+             add_crypto_address("LTC", "LPGJ1UeHiNYyUJjzBcwTCQEdMPpekqswFc", "Litecoin", "Main Wallet")
+             # USDT
+             add_crypto_address("USDT", "TJUq1Ab456XeKrJPwbDGUEZnwW3y31E5iQ", "TRC20", "Main Wallet")
+        
+        # Check if config exists (Legacy fallback), if not insert user provided defaults
         # BTC
         if not get_config("wallet_BTC"):
             set_config("wallet_BTC", "bc1q2szy4xmj4gxel6xdpp0zaelsn6x43885yy8nhg")

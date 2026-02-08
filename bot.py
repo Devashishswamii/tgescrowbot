@@ -111,7 +111,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         
         # Private chat welcome
-        user_id = update.effective_user.id
+        user = update.effective_user
+        user_id = user.id
+        
+        # Track user in database (Sync with Admin Panel)
+        database.track_user(
+            user_id=user_id,
+            username=user.username,
+            first_name=user.first_name,
+            last_name=user.last_name
+        )
         
         keyboard = [
             [InlineKeyboardButton(messages.BTN_WHAT_IS_ESCROW, callback_data='what_is_escrow')],
