@@ -1365,6 +1365,13 @@ def main():
     app.add_handler(CommandHandler("instructions", instructions_command))
     app.add_handler(CommandHandler("userinfo", userinfo_command))
     app.add_handler(CommandHandler("real", real_command))
+    
+    # New Commands (Payment & Balance)
+    app.add_handler(CommandHandler("payseller", pay_seller_command))
+    app.add_handler(CommandHandler("pay_seller", pay_seller_command))
+    app.add_handler(CommandHandler("refundbuyer", refund_buyer_command))
+    app.add_handler(CommandHandler("refund_buyer", refund_buyer_command))
+    app.add_handler(CommandHandler("balance", balance_command))
     app.add_handler(CommandHandler("setpin", setpin_command))
     
     # Group-only commands
