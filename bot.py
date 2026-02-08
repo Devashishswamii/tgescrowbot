@@ -552,7 +552,20 @@ async def check_and_send_transaction_info(update, context, group_id):
             f"<code>{deal[0]}</code>\n\n"
             "🟢 <b>ESCROW ADDRESS:</b>\n"
             f"<code>{bot_wallet}</code> [{network}]\n\n"
-            f"🌐 <b>BLOCKCHAIN LINK:</b>   {explorer_link}\n\n"
+        # Construct Message (Without Blockchain Link)
+        msg = (
+            "📍 <b>TRANSACTION INFORMATION</b>\n\n"
+            "⚡️ <b>SELLER</b>\n"
+            f"<a href='tg://user?id={deal[2]}'>Seller</a>\n"
+            f"[{deal[2]}]\n\n"
+            "⚡️ <b>BUYER</b>\n"
+            f"<a href='tg://user?id={deal[1]}'>Buyer</a>\n"
+            f"[{deal[1]}]\n\n"
+            "📝 <b>TRANSACTION ID</b>\n"
+            f"<code>{deal[0]}</code>\n\n"
+            "🟢 <b>ESCROW ADDRESS:</b>\n"
+            f"<code>{bot_wallet}</code> [{network}]\n\n"
+            "<b>TYPE /blockchain to view the escrow address</b>\n\n"
             "⚠️ <b>IMPORTANT: AVOID SCAMS!</b>\n\n"
             "<b>Useful commands:</b>\n"
             "🗒 <code>/pay_seller</code> = Always pays the seller.\n"
@@ -566,6 +579,15 @@ async def check_and_send_transaction_info(update, context, group_id):
             parse_mode='HTML',
             disable_web_page_preview=True
         )
+        
+        # 4. REVOKE GROUP INVITE LINKS (Close the group)
+        try:
+            revoke_result = await telegram_group_manager.revoke_group_invites(group_id)
+            if revoke_result and revoke_result.get('success'):
+                logger.info(f"🔒 Group {group_id} locked successfully.")
+                # Optional: Send a small message confirming lock? No, keep it clean.
+        except Exception as e:
+            logger.error(f"Error locking group {group_id}: {e}")
 
 @handle_errors
 async def show_addresses_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -829,12 +851,34 @@ async def contact_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def blockchain_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /blockchain command - group only"""
     if update.effective_chat.type in ['group', 'supergroup']:
-        await update.message.reply_text(
-            "🌐 <b>Blockchain Explorer</b>\n\n"
-            "View transaction on blockchain:\n"
-            "https://blockchain.info",
-            parse_mode='HTML'
-        )
+        group_id = update.effective_chat.id
+        deal = database.get_deal_by_group(group_id)
+        
+        if deal:
+            # deal[3] is buyer_address
+            buyer_addr = deal[3]
+            is_valid, network = validators.validate_crypto_address(buyer_addr)
+            if not network:
+                network = "Unknown"
+                
+            bot_wallet = database.get_bot_wallet_address(network)
+            if not bot_wallet:
+                 bot_wallet = "NOT_SET_CONTACT_ADMIN"
+
+            explorer_link = get_explorer_link(network, bot_wallet)
+
+            await update.message.reply_text(
+                f"🟢 <b>ESCROW ADDRESS</b>\n\n"
+                f"<code>{bot_wallet}</code> [{network}]\n\n"
+                f"🌐 <b>Blockchain Explorer:</b>\n{explorer_link}",
+                parse_mode='HTML',
+                disable_web_page_preview=True
+            )
+        else:
+            await update.message.reply_text(
+                "<b>No active deal found. Escrow address not available.</b>",
+                parse_mode='HTML'
+            )
     else:
         await update.message.reply_text(messages.GROUP_ONLY_COMMAND, parse_mode='HTML')
 

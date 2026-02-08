@@ -227,6 +227,68 @@ async def create_escrow_group(deal_id, bot_username=None):
             'error': str(e)
         }
 
+async def revoke_group_invites(group_id):
+    """
+    Revoke all invite links for a group to close it to new members
+    """
+    api_id, api_hash = get_credentials()
+    if not api_id or not api_hash:
+        return {'success': False, 'error': 'Missing API credentials'}
+        
+    client = None
+    try:
+        session_string = get_admin_session()
+        if not session_string:
+            return {'success': False, 'error': 'No admin session found'}
+            
+        client = TelegramClient(StringSession(session_string), api_id, api_hash)
+        await client.connect()
+        
+        if not await client.is_user_authorized():
+            return {'success': False, 'error': 'Admin session expired'}
+            
+        # Telethon uses positive IDs (usually) but sometimes handles -100
+        # If DB passed -100 ID, we need to convert it back?
+        # get_entity usually handles it if input is int
+        # But if it's -100123... Telethon expects 123... (channel id) or -100123... (chat_id)
+        # Let's try direct use first.
+        
+        try:
+            # 1. Get Exported Invites
+            from telethon.tl.functions.messages import GetExportedChatInvitesRequest, EditExportedChatInviteRequest
+            
+            # Fetch existing invites
+            result = await client(GetExportedChatInvitesRequest(
+                peer=group_id,
+                admin_id=await client.get_me(), # Invites created by admin
+                limit=10
+            ))
+            
+            count = 0
+            for invite in result.invites:
+                if not invite.revoked:
+                    # Revoke it
+                    await client(EditExportedChatInviteRequest(
+                        peer=group_id,
+                        link=invite.link,
+                        revoked=True
+                    ))
+                    count += 1
+            
+            logger.info(f"🔒 Revoked {count} invite links for group {group_id}")
+            return {'success': True, 'revoked_count': count}
+            
+        except Exception as e:
+            logger.error(f"Error revoking links: {e}")
+            return {'success': False, 'error': str(e)}
+            
+    except Exception as e:
+        logger.error(f"Error in revoke_group_invites: {e}")
+        return {'success': False, 'error': str(e)}
+    finally:
+        if client:
+            await client.disconnect()
+
 def format_group_created_message(deal_id, invite_link):
     """
     Format the success message when a group is created
