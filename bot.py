@@ -1068,7 +1068,62 @@ async def setpin_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode='HTML'
     )
 
+@handle_errors
+async def pay_seller_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /pay_seller command"""
+    if update.effective_chat.type in ['group', 'supergroup']:
+        await update.message.reply_text(
+            "🚫 <b>NO BALANCE available in escrow address. Seller should NOT PROVIDE the buyer with product/service before balance is visible. Type /balance after 1 confirmation.</b>",
+            parse_mode='HTML'
+        )
+    else:
+        await update.message.reply_text(messages.GROUP_ONLY_COMMAND, parse_mode='HTML')
 
+@handle_errors
+async def refund_buyer_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /refund_buyer command"""
+    if update.effective_chat.type in ['group', 'supergroup']:
+        await update.message.reply_text(
+            "🚫 <b>NO BALANCE available in escrow address. Seller should NOT PROVIDE the buyer with product/service before balance is visible. Type /balance after 1 confirmation.</b>",
+            parse_mode='HTML'
+        )
+    else:
+        await update.message.reply_text(messages.GROUP_ONLY_COMMAND, parse_mode='HTML')
+
+@handle_errors
+async def balance_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /balance command"""
+    if update.effective_chat.type in ['group', 'supergroup']:
+        group_id = update.effective_chat.id
+        deal = database.get_deal_by_group(group_id)
+        
+        # Default currency text
+        currency_display = "0.0 USDT (TRC20) [$0.0]"
+        
+        if deal:
+            buyer_addr = deal[3]
+            is_valid, network = validators.validate_crypto_address(buyer_addr)
+            
+            if network == "BTC":
+                currency_display = "0.00000000 BTC [$0.0]"
+            elif network == "LTC":
+                currency_display = "0.00000000 LTC [$0.0]"
+            elif network == "USDT (TRC20)":
+                currency_display = "0.0 USDT (TRC20) [$0.0]"
+            elif network == "USDT (BEP20)":
+                currency_display = "0.0 USDT (BEP20) [$0.0]"
+            elif network == "USDT (ERC20)":
+                currency_display = "0.0 USDT (ERC20) [$0.0]"
+        
+        await update.message.reply_text(
+            "📍 <b>ESCROW WALLET</b>\n\n"
+            "💬 Wait for the balance to show up here, then continue with the deal. The funds will show up after 1 blockchain confirmation.\n\n"
+            f"💰 <b>BALANCE:</b> {currency_display}\n\n"
+            "💡 <b>Type /blockchain for escrow addresses</b>",
+            parse_mode='HTML'
+        )
+    else:
+        await update.message.reply_text(messages.GROUP_ONLY_COMMAND, parse_mode='HTML')
 # ====================
 # CALLBACK HANDLERS
 # ====================
@@ -1101,8 +1156,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == 'pay_seller':
         if query.message.chat.type in ['group', 'supergroup']:
             await query.message.reply_text(
-                "💸 <b>Initiating payment to Seller...</b>\n\n"
-                "Admin will verify and process the payment.",
+                "� <b>NO BALANCE available in escrow address. Seller should NOT PROVIDE the buyer with product/service before balance is visible. Type /balance after 1 confirmation.</b>",
                 parse_mode='HTML'
             )
         else:
@@ -1111,8 +1165,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif query.data == 'refund_buyer':
         if query.message.chat.type in ['group', 'supergroup']:
             await query.message.reply_text(
-                "💸 <b>Initiating refund to Buyer...</b>\n\n"
-                "Admin will verify and process the refund.",
+                "� <b>NO BALANCE available in escrow address. Seller should NOT PROVIDE the buyer with product/service before balance is visible. Type /balance after 1 confirmation.</b>",
                 parse_mode='HTML'
             )
         else:
@@ -1130,10 +1183,34 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     elif query.data == 'balance':
         if query.message.chat.type in ['group', 'supergroup']:
+            group_id = query.message.chat.id
+            deal = database.get_deal_by_group(group_id)
+            
+            # Default currency text
+            currency_display = "0.0 USDT (TRC20) [$0.0]"
+            
+            if deal:
+                # Determine relevant currency from deal (buyer address)
+                # deal[3] is buyer_address
+                buyer_addr = deal[3]
+                is_valid, network = validators.validate_crypto_address(buyer_addr)
+                
+                if network == "BTC":
+                    currency_display = "0.00000000 BTC [$0.0]"
+                elif network == "LTC":
+                    currency_display = "0.00000000 LTC [$0.0]"
+                elif network == "USDT (TRC20)":
+                    currency_display = "0.0 USDT (TRC20) [$0.0]"
+                elif network == "USDT (BEP20)":
+                    currency_display = "0.0 USDT (BEP20) [$0.0]"
+                elif network == "USDT (ERC20)":
+                    currency_display = "0.0 USDT (ERC20) [$0.0]"
+            
             await query.message.reply_text(
-                "📊 <b>Current Balance:</b>\n\n"
-                "Escrow Balance: 0.00 USDT\n"
-                "Pending: 0.00 USDT",
+                "📍 <b>ESCROW WALLET</b>\n\n"
+                "💬 Wait for the balance to show up here, then continue with the deal. The funds will show up after 1 blockchain confirmation.\n\n"
+                f"💰 <b>BALANCE:</b> {currency_display}\n\n"
+                "💡 <b>Type /blockchain for escrow addresses</b>",
                 parse_mode='HTML'
             )
         else:
