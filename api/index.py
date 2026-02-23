@@ -210,29 +210,54 @@ def content():
 def settings():
     try:
         if request.method == 'POST':
-            # Password Update
-            new_password = request.form.get('new_password')
-            if new_password:
-                if database.update_config('admin_password', new_password):
-                    flash('Password updated successfully!', 'success')
+            form_type = request.form.get('form_type', '')
+
+            if form_type == 'telegram':
+                # Save Telegram API credentials to Supabase
+                api_id = request.form.get('api_id', '').strip()
+                api_hash = request.form.get('api_hash', '').strip()
+                phone = request.form.get('phone', '').strip()
+
+                saved = []
+                if api_id:
+                    database.update_config('telegram_api_id', api_id)
+                    saved.append('API ID')
+                if api_hash:
+                    database.update_config('telegram_api_hash', api_hash)
+                    saved.append('API Hash')
+                if phone:
+                    database.update_config('telegram_phone', phone)
+                    saved.append('Phone')
+
+                if saved:
+                    flash(f'âœ… Saved to Supabase: {", ".join(saved)}. Now go to Telegram tab to login.', 'success')
                 else:
-                    flash('Error updating password!', 'danger')
-            
-            # Telegram Config Update
-            api_id = request.form.get('api_id')
-            api_hash = request.form.get('api_hash')
-            phone = request.form.get('phone')
-            
-            if api_id:
-                database.update_config('telegram_api_id', api_id)
-            if api_hash:
-                database.update_config('telegram_api_hash', api_hash)
-            if phone:
-                database.update_config('telegram_phone', phone)
-            
-            if api_id or api_hash or phone:
-                flash('Telegram settings updated!', 'success')
-                    
+                    flash('No values entered.', 'warning')
+
+            elif form_type == 'password':
+                # Update admin panel password
+                new_password = request.form.get('new_password', '').strip()
+                if new_password:
+                    database.update_config('admin_password', new_password)
+                    flash('âœ… Admin password updated!', 'success')
+                else:
+                    flash('No password entered.', 'warning')
+
+            else:
+                # Legacy: handle old form without form_type
+                new_password = request.form.get('new_password')
+                if new_password:
+                    database.update_config('admin_password', new_password)
+                    flash('Password updated!', 'success')
+                api_id = request.form.get('api_id')
+                api_hash = request.form.get('api_hash')
+                phone = request.form.get('phone')
+                if api_id: database.update_config('telegram_api_id', api_id)
+                if api_hash: database.update_config('telegram_api_hash', api_hash)
+                if phone: database.update_config('telegram_phone', phone)
+                if api_id or api_hash or phone:
+                    flash('Telegram settings updated!', 'success')
+
         config = {
             'admin_username': database.get_config('admin_username') or 'admin',
             'admin_password': database.get_config('admin_password') or 'Not set',
