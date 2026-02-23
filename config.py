@@ -1,33 +1,74 @@
-# Config.py
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
-# Replace with your actual bot token
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8470449689:AAEHH4KZJi2TCqcWOxpVO0MtHDcTukaEN0k")
+# â”€â”€â”€ REQUIRED: Only these 3 must be in .env â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
+SUPABASE_URL = os.getenv("SUPABASE_URL", "")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "")
 
-# Telethon User Account Credentials (for creating groups)
-# Get these from https://my.telegram.org
-API_ID = int(os.getenv("API_ID", "0"))  # e.g., 12345678 - must be integer
-API_HASH = os.getenv("API_HASH", "YOUR_API_HASH_HERE")  # e.g., "a1b2c3d4e5f6..."
-PHONE_NUMBER = os.getenv("PHONE_NUMBER", "YOUR_PHONE_NUMBER_HERE")  # e.g., "+1234567890"
+# â”€â”€â”€ ADMIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ADMIN_PANEL_URL = os.getenv("ADMIN_PANEL_URL", "http://localhost:5000")
+ADMIN_PANEL_PASSWORD = os.getenv("ADMIN_PANEL_PASSWORD", "admin123")
+SECRET_KEY = os.getenv("SECRET_KEY", "escrow-secret-key")
 
-# Admin Configuration
-ADMIN_USERNAMES = [os.getenv("ADMIN_USERNAMES", "@MiddleCryptoSupport")]  # Admin User IDs (numeric Telegram IDs, you need to populate this)
-ADMIN_USER_IDS = []  # Example: ["123456789"]
-
-# Admin User ID - with error handling for invalid values
+# Admin user IDs (still from env for security, comma-separated)
+ADMIN_USERNAMES = [u.strip() for u in os.getenv("ADMIN_USERNAMES", "@MiddleCryptoSupport").split(",")]
 try:
-    ADMIN_USER_ID = int(os.getenv("ADMIN_USER_ID", "0"))  # Your Telegram user ID (get from @userinfobot)
+    ADMIN_USER_ID = int(os.getenv("ADMIN_USER_ID", "0"))
 except (ValueError, TypeError):
-    ADMIN_USER_ID = 0  # Default to 0 if invalid
+    ADMIN_USER_ID = 0
+ADMIN_USER_IDS = []
 
-# Admin Panel URL (for Telegram Web App)
-ADMIN_PANEL_URL = os.getenv("ADMIN_PANEL_URL", "http://localhost:5000")  # Vercel URL in production
+# â”€â”€â”€ TELEGRAM API CREDS: Fetched from Supabase (configured via admin panel) â”€â”€â”€
+# These are NOT in .env â€” set them in Admin Panel â†’ Settings â†’ Telegram API
+_tg_creds_cache = {}
 
-# === Admin Panel Settings ===
-ADMIN_PANEL_PASSWORD = "admin123"  # Change this to a secure password
+def _get_supabase_config(key, default=None):
+    """Fetch a config value from Supabase config table."""
+    try:
+        from supabase import create_client
+        sb = create_client(SUPABASE_URL, SUPABASE_KEY)
+        result = sb.table('config').select('value').eq('key', key).execute()
+        if result.data:
+            return result.data[0]['value']
+    except Exception as e:
+        print(f"[config] Could not fetch '{key}' from Supabase: {e}")
+    return default
+
+def get_api_id():
+    """Get API_ID - from Supabase first, fallback to env."""
+    if 'api_id' not in _tg_creds_cache:
+        val = _get_supabase_config('telegram_api_id') or os.getenv('API_ID', '0')
+        try:
+            _tg_creds_cache['api_id'] = int(val)
+        except (ValueError, TypeError):
+            _tg_creds_cache['api_id'] = 0
+    return _tg_creds_cache['api_id']
+
+def get_api_hash():
+    """Get API_HASH - from Supabase first, fallback to env."""
+    if 'api_hash' not in _tg_creds_cache:
+        _tg_creds_cache['api_hash'] = _get_supabase_config('telegram_api_hash') or os.getenv('API_HASH', '')
+    return _tg_creds_cache['api_hash']
+
+def get_phone_number():
+    """Get PHONE_NUMBER - from Supabase first, fallback to env."""
+    if 'phone_number' not in _tg_creds_cache:
+        _tg_creds_cache['phone_number'] = _get_supabase_config('telegram_phone') or os.getenv('PHONE_NUMBER', '')
+    return _tg_creds_cache['phone_number']
+
+def clear_tg_creds_cache():
+    """Call this after saving new credentials via admin panel."""
+    global _tg_creds_cache
+    _tg_creds_cache = {}
+
+# Legacy compatibility â€” use get_api_id() etc. where possible
+# These will be 0/'' if not set in Supabase yet
+API_ID = int(os.getenv('API_ID', '0'))
+API_HASH = os.getenv('API_HASH', '')
+PHONE_NUMBER = os.getenv('PHONE_NUMBER', '')
+
 MEDIA_DIR = "media"
-MAX_VIDEO_SIZE_MB = 50  # Maximum video upload size in MB
+MAX_VIDEO_SIZE_MB = 50
