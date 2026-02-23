@@ -5,82 +5,85 @@
 {% block content %}
 <div style="margin-bottom: 2rem;">
     <h1 style="font-size: 1.8rem; font-weight: 800; color: var(--dark); margin-bottom: 0.5rem;">System Settings</h1>
-    <p style="color: var(--gray); font-size: 0.95rem;">Configure Telegram & Security</p>
+    <p style="color: var(--gray); font-size: 0.95rem;">Configure Telegram API & Security â€” credentials are stored in Supabase, no .env needed.</p>
 </div>
 
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
 
-    <!-- Telegram Config -->
-    <div
-        style="background: white; padding: 2rem; border-radius: 24px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.05);">
-        <h2
-            style="font-size: 1.25rem; font-weight: 700; color: var(--dark); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-            <span
-                style="background: rgba(59, 130, 246, 0.1); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem;">📱</span>
-            Telegram Setup
+    <!-- Telegram API Credentials -->
+    <div style="background: white; padding: 2rem; border-radius: 24px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.05);">
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--dark); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span style="background: rgba(59, 130, 246, 0.1); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem;">ðŸ“±</span>
+            Telegram API Credentials
         </h2>
-        <p style="color: var(--gray); font-size: 0.9rem; margin-bottom: 1.5rem;">Required for bot functionality.</p>
+        <p style="color: var(--gray); font-size: 0.85rem; margin-bottom: 0.75rem;">Stored in Supabase â€” get from <a href="https://my.telegram.org" target="_blank" style="color:var(--primary);">my.telegram.org</a></p>
+
+        <!-- Status Banner -->
+        <div style="background: {% if config.api_id %}rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3);{% else %}rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3);{% endif %} border-radius: 10px; padding: 0.6rem 1rem; margin-bottom: 1.25rem; font-size: 0.85rem; font-weight: 600; color: {% if config.api_id %}#059669{% else %}#dc2626{% endif %};">
+            {% if config.api_id %}
+                âœ… Credentials saved in Supabase â€” Telegram login ready
+            {% else %}
+                âš ï¸ Not configured yet â€” Enter credentials below & save
+            {% endif %}
+        </div>
 
         <form method="POST">
+            <input type="hidden" name="form_type" value="telegram">
             <div class="form-group" style="margin-bottom: 1.25rem;">
-                <label for="api_id"
-                    style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark); font-size: 0.9rem;">API
-                    ID</label>
+                <label for="api_id" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark); font-size: 0.9rem;">API ID</label>
                 <input type="text" id="api_id" name="api_id" value="{{ config.api_id }}" placeholder="e.g. 12345678"
-                    style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; transition: all 0.2s;"
+                    style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; transition: all 0.2s; box-sizing: border-box;"
                     onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
             </div>
 
             <div class="form-group" style="margin-bottom: 1.25rem;">
-                <label for="api_hash"
-                    style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark); font-size: 0.9rem;">API
-                    Hash</label>
-                <input type="text" id="api_hash" name="api_hash" value="{{ config.api_hash }}"
-                    placeholder="e.g. abcdef..."
-                    style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; transition: all 0.2s;"
+                <label for="api_hash" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark); font-size: 0.9rem;">API Hash</label>
+                <input type="text" id="api_hash" name="api_hash" value="{{ config.api_hash }}" placeholder="e.g. abcdef1234..."
+                    style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; transition: all 0.2s; box-sizing: border-box;"
                     onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
             </div>
 
             <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label for="phone"
-                    style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark); font-size: 0.9rem;">Phone
-                    Number</label>
-                <input type="text" id="phone" name="phone" value="{{ config.phone }}" placeholder="+1234567890"
-                    style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; transition: all 0.2s;"
+                <label for="phone" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark); font-size: 0.9rem;">Phone Number</label>
+                <input type="text" id="phone" name="phone" value="{{ config.phone }}" placeholder="+91XXXXXXXXXX"
+                    style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; transition: all 0.2s; box-sizing: border-box;"
                     onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
             </div>
 
             <button type="submit"
-                style="width: 100%; padding: 0.875rem; border-radius: 12px; background: var(--gradient-1); color: white; font-weight: 600; border: none; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);">
-                Save Configuration
+                style="width: 100%; padding: 0.875rem; border-radius: 12px; background: var(--gradient-1); color: white; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(99,102,241,0.4);">
+                ðŸ’¾ Save to Supabase
             </button>
         </form>
+
+        {% if config.api_id %}
+        <div style="margin-top: 1rem; text-align: center;">
+            <a href="{{ url_for('telegram_login') }}" style="color: var(--primary); font-size: 0.9rem; font-weight: 600; text-decoration: none;">
+                â†’ Go to Telegram Login â†’
+            </a>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Admin Security -->
-    <div
-        style="background: white; padding: 2rem; border-radius: 24px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.05);">
-        <h2
-            style="font-size: 1.25rem; font-weight: 700; color: var(--dark); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-            <span
-                style="background: rgba(16, 185, 129, 0.1); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem;">🛡️</span>
+    <div style="background: white; padding: 2rem; border-radius: 24px; box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.05);">
+        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--dark); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span style="background: rgba(16, 185, 129, 0.1); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem;">ðŸ›¡ï¸</span>
             Admin Security
         </h2>
 
         <form method="POST">
+            <input type="hidden" name="form_type" value="password">
             <div class="form-group" style="margin-bottom: 1.5rem;">
-                <label for="new_password"
-                    style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark); font-size: 0.9rem;">New
-                    Password</label>
+                <label for="new_password" style="display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--dark); font-size: 0.9rem;">New Admin Password</label>
                 <input type="password" id="new_password" name="new_password" placeholder="Set new admin password"
-                    style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; transition: all 0.2s;"
+                    style="width: 100%; padding: 0.75rem 1rem; border-radius: 12px; border: 2px solid #e2e8f0; outline: none; transition: all 0.2s; box-sizing: border-box;"
                     onfocus="this.style.borderColor='var(--success)'" onblur="this.style.borderColor='#e2e8f0'">
-                <small style="color: var(--gray); display: block; margin-top: 0.5rem; font-size: 0.8rem;">Leave blank to
-                    keep existing password.</small>
+                <small style="color: var(--gray); display: block; margin-top: 0.5rem; font-size: 0.8rem;">Leave blank to keep existing password.</small>
             </div>
 
             <button type="submit"
-                style="width: 100%; padding: 0.875rem; border-radius: 12px; background: #10b981; color: white; font-weight: 600; border: none; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.4);">
+                style="width: 100%; padding: 0.875rem; border-radius: 12px; background: #10b981; color: white; font-weight: 600; border: none; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(16,185,129,0.4);">
                 Update Password
             </button>
         </form>
@@ -92,13 +95,23 @@
                     <span style="color: var(--gray); font-size: 0.9rem;">Admin User</span>
                     <span style="font-weight: 600; font-family: monospace;">{{ config.admin_username }}</span>
                 </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--gray); font-size: 0.9rem;">API ID</span>
+                    <span style="font-weight: 600; font-size: 0.85rem; color: {% if config.api_id %}var(--success){% else %}var(--danger){% endif %};">
+                        {% if config.api_id %}âœ… Set{% else %}âŒ Not set{% endif %}
+                    </span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: var(--gray); font-size: 0.9rem;">API Hash</span>
+                    <span style="font-weight: 600; font-size: 0.85rem; color: {% if config.api_hash %}var(--success){% else %}var(--danger){% endif %};">
+                        {% if config.api_hash %}âœ… Set{% else %}âŒ Not set{% endif %}
+                    </span>
+                </div>
                 <div style="display: flex; justify-content: space-between;">
-                    <span style="color: var(--gray); font-size: 0.9rem;">Password</span>
-                    {% if config.admin_password == 'Not set' %}
-                    <span style="color: var(--danger); font-size: 0.85rem; font-weight: 600;">❌ Not Configured</span>
-                    {% else %}
-                    <span style="color: var(--success); font-size: 0.85rem; font-weight: 600;">✅ Secure</span>
-                    {% endif %}
+                    <span style="color: var(--gray); font-size: 0.9rem;">Phone</span>
+                    <span style="font-weight: 600; font-size: 0.85rem; color: {% if config.phone %}var(--success){% else %}var(--danger){% endif %};">
+                        {% if config.phone %}âœ… {{ config.phone }}{% else %}âŒ Not set{% endif %}
+                    </span>
                 </div>
             </div>
         </div>
