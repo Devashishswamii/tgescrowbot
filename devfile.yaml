@@ -1,0 +1,33 @@
+schemaVersion: 2.2.0
+metadata:
+  name: tg-escrow-bot
+  description: Telegram Escrow Bot Development Environment
+
+components:
+  - name: python
+    container:
+      image: quay.io/devfile/universal-developer-image:latest
+      memoryLimit: 512Mi
+      mountSources: true
+      env:
+        - name: BOT_TOKEN
+          value: "8458932864:AAHzMyFo6AuLG2ZhEiZCyh3pRU589oXYlGQ"
+        - name: SUPABASE_URL
+          value: "https://eqdgrdpnaewdtghjhodp.supabase.co"
+        - name: SUPABASE_KEY
+          value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxZGdyZHBuYWV3ZHRnaGpob2RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzMDg3NjgsImV4cCI6MjA4Njg4NDc2OH0.1jt9iIue_G8oGKN613WHp4owgypheK04gkzUwv7b1SM"
+
+commands:
+  - id: install-deps
+    exec:
+      label: "Install Dependencies"
+      component: python
+      commandLine: pip install -r requirements.txt
+      workingDir: ${PROJECT_SOURCE}
+
+  - id: run-bot
+    exec:
+      label: "Run Bot"
+      component: python
+      commandLine: python bot.py
+      workingDir: ${PROJECT_SOURCE}
